@@ -1,7 +1,42 @@
+# python
 __pycache__/
 *.pyc
+.venv/
 .env
+.env.*
+
+# model weights & datasets
+hf_models/
+models/
+checkpoints/
+weights/
+*.safetensors
+*.bin
+*.pt
+*.onnx
+*.gguf
+*.ggml
+
+# caches
+.cache/
+.huggingface/
+~/.cache/
+~/.local/share/huggingface/
+
+# data & artifacts
+data/
+datasets/
 runs/
-reports/*.png
-reports/*.csv
-*.ipynb
+wandb/
+telemetry.csv
+*.log
+*.tmp
+*.bak
+
+# node
+node_modules/
+
+# build
+dist/
+build/
+*.whl
