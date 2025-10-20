@@ -13,9 +13,9 @@ weights/
 *.safetensors
 *.bin
 *.pt
-*.onnx
 *.gguf
 *.ggml
+*.onnx
 
 # caches
 .cache/
