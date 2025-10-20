@@ -37,7 +37,7 @@ async def infer(body: InferIn):
 
     t0 = time.perf_counter()
     clean_task = asyncio.create_task(call_json(f"{CLEANER_URL}/clean", {"text": prompt}))
-    desc_task  = asyncio.create_task(call_json(f"{DESCR_URL}/describe", {"text": prompt}))
+    desc_task  = asyncio.create_task(call_json(f"{DESCR_URL}/descr", {"text": prompt}))
     try:
         (cleaned, clean_ms), (described, descr_ms) = await asyncio.gather(clean_task, desc_task)
     except httpx.HTTPError as e:
