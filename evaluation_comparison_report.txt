@@ -1,0 +1,983 @@
+====================================================================================================
+  🔍 MODEL EVALUATION RESULTS COMPARISON
+====================================================================================================
+
+
+
+████████████████████████████████████████████████████████████████████████████████████████████████████
+  📝 GRAMMAR CORRECTION (JFLEG)
+████████████████████████████████████████████████████████████████████████████████████████████████████
+
+====================================================================================================
+  GRAMMAR COMPARISON
+====================================================================================================
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 1/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   New and new technology has been introduced to the society .
+
+🔹 REFERENCES:
+   1. New technology has been introduced to society .
+   2. New technology has been introduced into the society .
+   3. Newer and newer technology has been introduced into society .
+
+🤖 Original 3B:
+   The corrected sentence would be:
+
+"New and new technology has been introduced to society."
+
+The change made was to remove the duplicate word "new" before "technology".
+
+🤖 Fine-tuned 3B (JFLEG):
+   New technology has been introduced to society.
+
+🤖 Original 8B:
+   The corrected sentence is:
+
+New technologies have been introduced to society.
+
+Explanation:
+- "New" is an adjective and should be used to describe a noun, which in this case is "technologies."
+- The verb "has" is a singular verb that should be used with a singular subject, which is "new." However, s...
+
+🤖 Fine-tuned 8B (JFLEG):
+   Newer and newer technology has been introduced to the society.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 2/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   One possible outcome is that an environmentally-induced reduction in motorization levels in the richer countries will outweigh any rise in motorization levels in the poorer countries .
+
+🔹 REFERENCES:
+   1. One possible outcome is that an environmentally-induced reduction in motorization levels in richer countries will outweigh any rise in motorization levels in poorer countries .
+   2. One possible outcome is that an environmentally-induced reduction in motorization levels in the richer countries will outweigh any rise in motorization levels in the poorer countries .
+   3. One possible outcome is that an environmentally induced reduction in motorization levels in the richer countries will outweigh any rise in motorization levels in the poorer countries .
+
+🤖 Original 3B:
+   Here is the corrected sentence:
+
+"One possible outcome is that an environmentally-induced reduction in motorization levels in richer countries will outweigh any rise in motorization levels in poorer countries."
+
+Changes made:
+
+- "richer" -> "richer" (correct spelling)
+- "poorer" -> "poorer" (correct...
+
+🤖 Fine-tuned 3B (JFLEG):
+   One possible outcome is that an environmentally induced reduction in motorization levels in the richer countries will outweigh any rise in motorization levels in the poorer countries.
+
+🤖 Original 8B:
+   The corrected sentence is:
+
+One possible outcome is that an environmentally-induced reduction in motorization levels in richer countries will outweigh any rise in motorization levels in poorer countries.
+
+Note: There was no grammatical error in the original sentence, but the corrected sentence uses ...
+
+🤖 Fine-tuned 8B (JFLEG):
+   One possible outcome is that an environmentally-induced reduction in motorization levels in the richer countries will outweigh any rise in motorization levels in the poorer countries.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 3/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   Every person needs to know a bit about math , sciences , arts , literature and history in order to stand out in society .
+
+🔹 REFERENCES:
+   1. Every person needs to know a bit about math , science , art , literature and history in order to stand out in society .
+   2. Every person needs to know a bit about math , sciences , arts , literature and history in order to stand out in society .
+   3. Every person needs to know a bit about math , science , the arts , literature , and history in order to stand out in society .
+
+🤖 Original 3B:
+   Here is the corrected sentence:
+
+Every person needs to know a little about math, science, art, literature, and history in order to stand out in society.
+
+I made the following corrections:
+
+- "a bit" is an informal expression that is not suitable for formal writing. I replaced it with "a little", whi...
+
+🤖 Fine-tuned 3B (JFLEG):
+   Every person needs to know a bit about math, science, art, literature and history in order to stand out in society.
+
+🤖 Original 8B:
+   Here's the corrected sentence:
+
+Every person needs to know a bit about math, sciences, arts, literature, and history in order to stand out in society.
+
+The correction is the addition of a comma after "literature" to separate the last item in the list from the phrase "in order to stand out in society...
+
+🤖 Fine-tuned 8B (JFLEG):
+   Every person needs to know a bit about math, science, arts, literature, and history in order to stand out in society.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 4/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   While the travel company will most likely show them some interesting sites in order for their customers to advertise for their company to their family and friends , it is highly unlikely , that the company will tell about the sites that were not included in the tour -- for example due to entrance fees that would make the total package price overly expensive .
+
+🔹 REFERENCES:
+   1. While the travel company will most likely show them some interesting sites in order for their customers to advertise for their company to their family and friends , it is highly unlikely that the company will tell about the sites that were not included in the tour -- for example due to entrance fees that would make the total package price overly expensive .
+   2. While the travel company will most likely show them some interesting sites in order to advertise their company to their family and friends , it is highly unlikely that the company will advertise the sites that were not included in the tour -- for example , due to entrance fees that would make the total package price overly expensive .
+   3. While the travel company will most likely show them some interesting sites in order for their customers to advertise their company to their family and friends , it is highly unlikely that the company will tell them about sites that were not included in the tour -- for example , due to entrance fees that would make the total package price overly expensive .
+
+🤖 Original 3B:
+   Here is the corrected sentence:
+
+While the travel company will most likely show its customers some interesting sites in order to advertise for the company to their family and friends, it is highly unlikely that the company will reveal the sites that were not included in the tour -- for example, due ...
+
+🤖 Fine-tuned 3B (JFLEG):
+   While the travel company will most likely show them some interesting sites in order for their customers to advertise their company to their family and friends, it is highly unlikely that the company will tell them about the sites that were not included in the tour -- for example, due to entrance fee...
+
+🤖 Original 8B:
+   Here's the corrected sentence:
+
+While the travel company will most likely show them some interesting sites in order for their customers to advertise the company to their family and friends, it is highly unlikely that the company will tell them about the sites that were not included in the tour, for ...
+
+🤖 Fine-tuned 8B (JFLEG):
+   While the travel company will most likely show them some interesting sites in order for their customers to advertise their company to their family and friends, it is highly unlikely that the company will tell them about the sites that were not included in the tour -- for example, due to entrance fee...
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 5/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   Disadvantage is parking their car is very difficult .
+
+🔹 REFERENCES:
+   1. A disadvantage is that parking their cars is very difficult .
+   2. A disadvantage is that parking their car is very difficult .
+   3. The disadvantage is that parking their car is very difficult .
+
+🤖 Original 3B:
+   The corrected sentence is:
+
+"Finding a parking spot is very difficult."
+
+The original sentence was incorrect because it used the word "advantage" (a noun) instead of "difficulty" (a noun), and also incorrectly used "their" (a possessive pronoun) instead of "finding" (the verb "to find").
+
+🤖 Fine-tuned 3B (JFLEG):
+   A disadvantage is that parking their car is very difficult.
+
+🤖 Original 8B:
+   The corrected sentence is: 
+
+"Disadvantage is that parking their car is very difficult."
+
+Alternatively, you could also rephrase the sentence to make it more idiomatic:
+
+"One of the disadvantages is that parking is very difficult."
+
+Or:
+
+"The main disadvantage is that parking is very difficult."
+
+🤖 Fine-tuned 8B (JFLEG):
+   The disadvantage is that parking their car is very difficult.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 6/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   Bigger farming are use more chemical product and substance to feed fish .
+
+🔹 REFERENCES:
+   1. Bigger farming is using more chemical products and substances to feed fish .
+   2. Big farming are using more chemical products and substances to feed fish .
+   3. Bigger farms are using more chemical products and substances to feed fish .
+
+🤖 Original 3B:
+   The corrected sentence is:
+
+"Bigger farms use more chemical products and substances to feed fish."
+
+Here's a breakdown of the corrections:
+
+* "farming" should be "farms" (subject-verb agreement)
+* "are" should be "use" (verb agreement)
+* "product" should be "products" (plural noun)
+* "substance" sho...
+
+🤖 Fine-tuned 3B (JFLEG):
+   Big farming are using more chemical products and substances to feed fish.
+
+🤖 Original 8B:
+   Here's the corrected sentence:
+
+"Bigger farms use more chemical products and substances to feed fish."
+
+Changes made:
+
+- "Bigger farming" should be "Bigger farms" (singular noun "farm" instead of plural noun "farming")
+- "are" should be "use" (verb tense consistency)
+- "product" should be "products"...
+
+🤖 Fine-tuned 8B (JFLEG):
+   Bigger farms are using more chemical products and substances to feed fish.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 7/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   Forexample , My cousin is 12years old .
+
+🔹 REFERENCES:
+   1. For example , my cousin is 12 years old .
+   2. For example , my cousin is 12 years old .
+   3. For example , my cousin is 12 years old .
+
+🤖 Original 3B:
+   The corrected sentence would be:
+
+"For example, my cousin is 12 years old."
+
+Here's the correction:
+
+* "Forexample" should be spelled as "For example"
+* Added "years" after "old" to make it grammatically correct.
+
+🤖 Fine-tuned 3B (JFLEG):
+   For example, my cousin is 12 years old.
+
+🤖 Original 8B:
+   The corrected sentence would be:
+
+For example, my cousin is 12 years old.
+
+Corrected errors:
+
+- "Forexample" should be "For example" (typo)
+- "12years" should be "12 years" (added space for proper punctuation and clarity)
+
+🤖 Fine-tuned 8B (JFLEG):
+   For example, my cousin is 12 years old.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 8/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   if it does , you will only get some misundrestood idea about that acticle but not the original one .
+
+🔹 REFERENCES:
+   1. If it does , you will only get some misunderstood idea about that article but not the original one .
+   2. If it does , you will get a mistaken idea about that article but not the intended idea .
+   3. If it does , you will get some misunderstood idea about the article instead of the original one .
+
+🤖 Original 3B:
+   The corrected sentence is:
+
+"If it does, you will only get a misunderstanding about that article, but not the original one."
+
+Here's a breakdown of the corrections:
+
+* "misundrestood" -> "misunderstanding" (spelling error)
+* "acticle" -> "article" (spelling error)
+* Added a comma after "article" to ...
+
+🤖 Fine-tuned 3B (JFLEG):
+   If it does, you will get some misunderstood idea about that article but not the original one.
+
+🤖 Original 8B:
+   The corrected sentence is: 
+
+"If you read it, you will only get a misundrestood idea about that article, but not the original one."
+
+🤖 Fine-tuned 8B (JFLEG):
+   If it does, you will get a misunderstood idea about that article instead of the original one.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 9/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   Secondly , chimp can also present the capability for grammer which means it can demonstrate the ability to combine words and be able to use grammatical constructions .
+
+🔹 REFERENCES:
+   1. Secondly , chimps are also capable of learning grammar , meaning they can demonstrate the ability to combine words and utilize grammatical constructions .
+   2. Secondly , chimp can also present the capability for grammar , which means it can demonstrate the ability to combine words and be able to use grammatical constructions .
+   3. Secondly , a chimp can also show the capability for grammar , which means it can demonstrate the ability to combine words and use grammatical constructions .
+
+🤖 Original 3B:
+   Here is the corrected sentence:
+
+"Secondly, chimpanzees can also possess the capability for grammar, which means they can demonstrate the ability to combine words and use grammatical constructions."
+
+Corrected errors:
+
+* "chimp" -> "chimpanzees" (subject-verb agreement: added an "s" to make it plura...
+
+🤖 Fine-tuned 3B (JFLEG):
+   Secondly, chimp can also present the capability for grammar, which means they are able to demonstrate the ability to combine words and use grammatical constructions.
+
+🤖 Original 8B:
+   Here's the corrected sentence:
+
+"Secondly, chimpanzees can also present the capability for grammar, which means they can demonstrate the ability to combine words and use grammatical constructions."
+
+I made the following corrections:
+
+- "chimp" was corrected to "chimpanzees" to refer to the correct s...
+
+🤖 Fine-tuned 8B (JFLEG):
+   Secondly, chimps also have the capability for grammar, which means they can demonstrate the ability to combine words and use grammatical constructions.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 10/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   Nevertheless , this city is having a big change .
+
+🔹 REFERENCES:
+   1. Nevertheless , this city is going through a big change .
+   2. Nevertheless , this city is experiencing a big change .
+   3. Nevertheless , this city is undergoing a big change .
+
+🤖 Original 3B:
+   The corrected sentence is:
+
+"Nevertheless, this city is undergoing a big change."
+
+Explanation:
+
+- "having" is a verb that is used to describe a state of being, whereas "undergoing" is a verb that describes a process or a change. In this context, "undergoing" is the more suitable choice because it i...
+
+🤖 Fine-tuned 3B (JFLEG):
+   Nevertheless, this city is undergoing a big change.
+
+🤖 Original 8B:
+   The corrected sentence is:
+
+"Nevertheless, the city is undergoing a big change."
+
+However, another possible correction could be:
+
+"Despite this, the city is undergoing a big change."
+
+The original sentence is grammatically correct, but it could be improved for clarity and idiomatic expression.
+
+🤖 Fine-tuned 8B (JFLEG):
+   Nevertheless, this city is undergoing a big change.
+
+
+====================================================================================================
+  OUTPUT STATISTICS
+====================================================================================================
+
+📊 Original 3B:
+   Average length: 388.0 chars
+   Min length: 167 chars
+   Max length: 627 chars
+
+📊 Fine-tuned 3B (JFLEG):
+   Average length: 118.3 chars
+   Min length: 39 chars
+   Max length: 359 chars
+
+📊 Original 8B:
+   Average length: 371.9 chars
+   Min length: 131 chars
+   Max length: 628 chars
+
+📊 Fine-tuned 8B (JFLEG):
+   Average length: 119.0 chars
+   Min length: 39 chars
+   Max length: 359 chars
+
+
+
+████████████████████████████████████████████████████████████████████████████████████████████████████
+  🔄 PARAPHRASING (PAWS)
+████████████████████████████████████████████████████████████████████████████████████████████████████
+
+====================================================================================================
+  PARAPHRASE COMPARISON
+====================================================================================================
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 1/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   The builders of St. James were also William William Cook and the son of Waimate North , who in 1871 built the Church of St. John the Baptist .
+
+🔹 REFERENCE:
+   William Cook and Son of Waimate North , who had built the church of St. John the Baptist in 1871 , were also the builders of St James .
+
+🤖 Original 3B:
+   Here's a paraphrased version of the sentence:
+
+The builders of St. James Church were William William Cook and his son, who had previously constructed the Church of St. John the Baptist in Waimate North in 1871.
+
+🤖 Fine-tuned 3B (Paraphrase):
+   The builders of St. James were William Cook and son of Waimate North who built the Church of St. John the Baptist in 1871.
+
+🤖 Original 8B:
+   The builders of St. James were also William Cook and the son of Waimate North, who had previously built the Church of St. John the Baptist in 1871.
+
+🤖 Fine-tuned 8B (Paraphrase):
+   The builders of St. James were also William Cook and the son of Waimate North, who built the St. John the Baptist Church in 1871.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 2/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   The brothels moved gradually to Possession Street and in 1903 to Shek Tong Tsui .
+
+🔹 REFERENCE:
+   The brothels gradually relocated to Possession Street and moved to Shek Tong Tsui in 1903 .
+
+🤖 Original 3B:
+   Here is a paraphrased version of the sentence:
+
+The brothels relocated gradually to Possession Street and then to Shek Tong Tsui by 1903.
+
+🤖 Fine-tuned 3B (Paraphrase):
+   The brothels gradually moved to Possession Street and then to Shek Tong Tsui in 1903.
+
+🤖 Original 8B:
+   Brothels shifted to Possession Street and then moved to Shek Tong Tsui by 1903.
+
+🤖 Fine-tuned 8B (Paraphrase):
+   The brothels gradually moved to Possession Street, and then to Shek Tong Tsui in 1903.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 3/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   Kurt Treu ( 15 September 1928 in Vienna , Austria -- 6 June 1991 in Karja , Saare County , Estonia ) , was a German classical Philologist .
+
+🔹 REFERENCE:
+   Kurt Treu ( September 15 , 1928 in Vienna , June 6 , 1991 in Karja , Saare County , Estonia ) was a German classical philologist .
+
+🤖 Original 3B:
+   Here is a paraphrased version of the sentence:
+
+Kurt Treu ( born September 15, 1928, Vienna, Austria ; died June 6, 1991, Karja, Estonia ) was a renowned German classical philologist.
+
+🤖 Fine-tuned 3B (Paraphrase):
+   Kurt Treu ( September 15, 1928 in Vienna, Austria -- June 6, 1991 in Karja, Saare County, Estonia ) was a German classical philologist.
+
+🤖 Original 8B:
+   Kurt Treu was born on September 15, 1928, in Vienna, Austria, and died on June 6, 1991, in Karja, Saare County, Estonia. He was a German classical philologist.
+
+🤖 Fine-tuned 8B (Paraphrase):
+   Kurt Treu ( September 15, 1928 in Vienna, Austria -- June 6, 1991 in Karja, Saare County, Estonia ), was a German classical philologist.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 4/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   On December 14 , 2009 , Elkhorn City became a part of Cedarville .
+
+🔹 REFERENCE:
+   On 14 December 2009 , Elkhorn City became part of Cedarville .
+
+🤖 Original 3B:
+   Here's a paraphrased version of the sentence:
+
+In 2009, Elkhorn City merged with Cedarville on December 14.
+
+🤖 Fine-tuned 3B (Paraphrase):
+   On December 14, 2009, Elkhorn City became part of Cedarville.
+
+🤖 Original 8B:
+   Elkhorn City was incorporated into Cedarville on December 14, 2009.
+
+🤖 Fine-tuned 8B (Paraphrase):
+   Elkhorn City became part of Cedarville on December 14, 2009.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 5/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   She taught at Johns Hopkins University , Goucher College , the University of Maryland , and George Mason University .
+
+🔹 REFERENCE:
+   She taught at Johns Hopkins University , at Goucher College , at the University of Maryland and at George Mason University .
+
+🤖 Original 3B:
+   She taught at Johns Hopkins University, Goucher College, the University of Maryland, and George Mason University.
+
+🤖 Fine-tuned 3B (Paraphrase):
+   She has taught at Johns Hopkins University, Goucher College, the University of Maryland, and George Mason University.
+
+🤖 Original 8B:
+   She taught at Johns Hopkins University, Goucher College, the University of Maryland, and George Mason University among other institutions.
+
+🤖 Fine-tuned 8B (Paraphrase):
+   She has taught at Johns Hopkins University, Goucher College, the University of Maryland, and George Mason University.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 6/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   The Nationals wore the uniforms of the 1924 Washington Senators on July 5 against the Giants , who wore the 1924 New York Giants uniforms .
+
+🔹 REFERENCE:
+   The Nationals wear the uniforms of the 1924 Washington Senators on July 5 against the Giants , who wore uniforms from the New York Giants in 1924 .
+
+🤖 Original 3B:
+   On July 5, the Nationals wore the 1924 Washington Senators' uniforms, while the Giants sported the 1924 New York Giants' uniforms in their matchup.
+
+🤖 Fine-tuned 3B (Paraphrase):
+   On July 5, the Nationals wore the uniforms of the 1924 Washington Senators against the Giants, who wore the New York Giants'1924 uniforms.
+
+🤖 Original 8B:
+   The Nationals wore the uniforms of the 1924 Washington Senators on July 5 when they faced the Giants, who were dressed in their 1924 New York Giants uniforms.
+
+🤖 Fine-tuned 8B (Paraphrase):
+   The Nationals wore the uniforms of the 1924 Washington Senators on July 5, facing the Giants, who wore the 1924 New York Giants uniforms.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 7/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   Kalisch wrote before the publication of Julius Wellhausen 's works , and anticipated him in some important points .
+
+🔹 REFERENCE:
+   Kalisch wrote and anticipated important points before the publication of Julius Wellhausen 's works .
+
+🤖 Original 3B:
+   Here's a paraphrased version of the sentence:
+
+Kalisch had already published his work before Julius Wellhausen, and his ideas shared some significant similarities with Wellhausen's, foreshadowing some of the latter's later contributions.
+
+🤖 Fine-tuned 3B (Paraphrase):
+   Kalisch wrote before the publication of the works of Julius Wellhausen and anticipated in some important points.
+
+🤖 Original 8B:
+   Kalisch wrote before Wellhausen's works were published, and in some key aspects, he preceded him.
+
+🤖 Fine-tuned 8B (Paraphrase):
+   Before the publication of Julius Wellhausen's works, Kalisch wrote and anticipated him in some important points.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 8/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   The Roman Catholic Diocese of Carabayllo is a diocese located in the city of Carabayllo in the Ecclesiastical province of Lima in Peru .
+
+🔹 REFERENCE:
+   The Roman - Catholic diocese of Carabayllo is a diocese in the city of Carabayllo in the church province of Lima in Peru .
+
+🤖 Original 3B:
+   Here's a paraphrased version of the sentence:
+
+The Roman Catholic Diocese of Carabayllo is a diocese situated in the city of Carabayllo, Peru, and is part of the Lima Ecclesiastical Province.
+
+🤖 Fine-tuned 3B (Paraphrase):
+   The Roman - Catholic diocese of Carabayllo is a diocese in the city of Carabayllo in the ecclesiastical province of Lima in Peru.
+
+🤖 Original 8B:
+   The Roman Catholic Diocese of Carabayllo is a diocese situated in Carabayllo, Peru, within the ecclesiastical province of Lima.
+
+🤖 Fine-tuned 8B (Paraphrase):
+   The Roman - Catholic diocese of Carabayllo is a diocese in the city of Carabayllo in the ecclesiastical province of Lima in Peru.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 9/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   Lamas is the capital city of the province of Lamas in the San Martín region of northern Peru .
+
+🔹 REFERENCE:
+   Lamas is the capital of the Lamas Province , situated in the San Martín Region of northern Peru .
+
+🤖 Original 3B:
+   Lamas is the capital of Lamas Province in the San Martín Region of northern Peru.
+
+🤖 Fine-tuned 3B (Paraphrase):
+   Lamas is the capital of Lamas Province in the San Martín Region of northern Peru.
+
+🤖 Original 8B:
+   The city of Lamas serves as the capital of the province of Lamas, located in the San Martín region of northern Peru.
+
+🤖 Fine-tuned 8B (Paraphrase):
+   Lamas is the capital of Lamas Province in the San Martín Region of northern Peru.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 10/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   The duo continue to perform and give workshops together across Europe and work on film and TV music together including award-winning German TV series and dramas .
+
+🔹 REFERENCE:
+   The duo will continue to appear together across Europe and will give workshops and work together on film and TV music , including award-winning German TV series and dramas .
+
+🤖 Original 3B:
+   The duo maintain an active career, performing live and leading workshops across Europe, while also collaborating on music for film and television, including notable projects such as award-winning German TV series and dramas.
+
+🤖 Fine-tuned 3B (Paraphrase):
+   The duo continues to perform and give workshops together across Europe and work on film and TV - music, including award-winning German TV series and dramas.
+
+🤖 Original 8B:
+   The duo continues to tour and collaborate on workshops throughout Europe, as well as composing music for film and television, including award-winning German TV series and dramas.
+
+🤖 Fine-tuned 8B (Paraphrase):
+   The duo continues to perform and give workshops together across Europe and work on film and TV music, including award-winning German TV series and dramas.
+
+
+====================================================================================================
+  OUTPUT STATISTICS
+====================================================================================================
+
+📊 Original 3B:
+   Average length: 163.0 chars
+   Min length: 81 chars
+   Max length: 237 chars
+
+📊 Fine-tuned 3B (Paraphrase):
+   Average length: 113.6 chars
+   Min length: 61 chars
+   Max length: 156 chars
+
+📊 Original 8B:
+   Average length: 126.6 chars
+   Min length: 67 chars
+   Max length: 178 chars
+
+📊 Fine-tuned 8B (Paraphrase):
+   Average length: 114.1 chars
+   Min length: 60 chars
+   Max length: 154 chars
+
+
+
+████████████████████████████████████████████████████████████████████████████████████████████████████
+  🧠 KNOWLEDGE (Wizard of Wikipedia)
+████████████████████████████████████████████████████████████████████████████████████████████████████
+
+====================================================================================================
+  KNOWLEDGE COMPARISON
+====================================================================================================
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 1/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   My hair is very long, I think I need a haircut soon.
+i have never actually cut my hair, my hair has been allowed to grow my whole life
+Wow, your hair must be very long. What do you do to maintain your hair?
+i usually keep it up so it doesn't tangle, but its all relative cause a guy with long hair could have hair to their chin and a girl with long hair would be to their legs
+That is very true. Do you think you will ever cut your hair?
+
+🤖 Original 3B:
+   I'm glad you're considering getting a haircut! As a digital AI assistant, I don't have a physical body, so I don't have hair. I exist solely as a computer program, so I don't have personal experiences or physical characteristics.
+
+However, I can provide you with some general tips on how to care for ...
+
+🤖 Fine-tuned 3B (Knowledge):
+   i probably will at some point, but its really weird how long it can be and how different cultures view it
+
+🤖 Original 8B:
+   As a digital assistant, I don't have a physical body, so I don't have hair. I exist solely as a computer program, so I don't have personal experiences or physical characteristics. I'm here to provide information and help with questions, though. 
+
+Maintaining long hair can be challenging, but it soun...
+
+🤖 Fine-tuned 8B (Knowledge):
+   i dont think so, i like it long and its a part of my culture, i have a long hair from my head and my beard is long as well
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 2/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   I'm a talented singer. Singing is the act of producing musical sounds with the voice and augments regular speech 
+That's lovely! Who is your favorite singer?
+Michael Jackson and you?  singing styles include art music such as opera and Chinese opera, Hindustani music, and religious music styles such as gospel, traditional music styles, world music, jazz, blues, gazal 
+He's a great singer! Who is your favorite jazz musician?
+I'm really not into jazz music .Jazz is a music genre that originated in the African-American communities of New Orleans.
+I'm from New Orleans so I love Jazz music. Do you like any Blues musicians?
+
+🤖 Original 3B:
+   I'm glad you're a talented singer. I'm an AI, I don't have personal preferences or emotions, but I can tell you about various singers and music genres.
+
+It sounds like you have a diverse taste in music, enjoying a wide range of styles such as opera, Chinese opera, Hindustani music, gospel, tradition...
+
+🤖 Fine-tuned 3B (Knowledge):
+   I like a few. I like to sing music from the musical style originated in the Deep South of the United States.
+
+🤖 Original 8B:
+   It seems like we're having a fun conversation about music. I'm glad you're passionate about singing and different music styles. As a digital AI assistant, I don't have personal preferences or feelings, but I can tell you about popular singers and musicians if you'd like. 
+
+Michael Jackson is indeed ...
+
+🤖 Fine-tuned 8B (Knowledge):
+   The blues is a music genre and musical form originated by African Americans in the Deep South of the United States around the end of the 19th century
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 3/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   Now that I have kids, I'm seeing a lot shows that I used to watch as a child, like "Tom and Jerry".
+Tom and Jerry started in 1940 made by William Hanna and Joeseph BArbera.
+William and Joseph went on to make/produce a large number of different cartoons. They nearly dominated Saturday morning at one point.
+
+🤖 Original 3B:
+   You're enjoying revisiting classic cartoons from your childhood. Yes, Tom and Jerry is indeed a beloved animated series created by William Hanna and Joseph Barbera, and it was first introduced in 1940. The duo went on to produce many other iconic cartoons, including The Flintstones, Scooby-Doo, Yogi...
+
+🤖 Fine-tuned 3B (Knowledge):
+   They did! They also produced the classic "Huckleberry Hound" which was another popular cartoon.
+
+🤖 Original 8B:
+   You're rediscovering classic cartoons from your childhood. William Hanna and Joseph Barbera are indeed legendary figures in the world of animation. They founded the animation studio Hanna-Barbera Productions in 1957, which went on to produce a vast array of iconic cartoons.
+
+Some of their notable sh...
+
+🤖 Fine-tuned 8B (Knowledge):
+   The characters Tom and Jerry are from a series of 115 animated short films.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 4/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   Hi, I used to work at an animal shelter back in college.
+
+🤖 Original 3B:
+   That's great experience to have, especially when it comes to understanding animal behavior and welfare. Working at an animal shelter can be very rewarding, but also emotionally challenging at times. What was your role at the shelter, and what was your favorite part about working there?
+
+🤖 Fine-tuned 3B (Knowledge):
+   Oh, that's awesome! Did you ever have to euthanize sick or dangerous animals?
+
+🤖 Original 8B:
+   That's wonderful! Working at an animal shelter can be a very rewarding experience, both emotionally and personally. It's great that you have a background in animal care and welfare. What was your favorite part about working at the shelter? Was it interacting with the animals, helping with adoptions,...
+
+🤖 Fine-tuned 8B (Knowledge):
+   Oh, I see.  Do you know that the shelter is a great place to volunteer.  Many are run by local government agencies.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 5/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   I would like to work for a veterinarian one day
+That would be really nice to treat diseases and injuries in animals. Do you know if you would like to specialize to a particular type of animal?
+I think in reptiles would be really cool. I follow this veterinarian on instagram that does exotic animals
+That would be  interesting. The term "veterinarian" is protected name, that requires specific qualifications. 
+I mean I would sure hope so lol, I wouldn't want to take my dog to some random person that's not qualified.
+
+🤖 Original 3B:
+   That's great to hear that you're interested in becoming a veterinarian and working with animals, especially reptiles! 
+
+Yes, veterinarians can specialize in specific areas, and many choose to specialize in certain types of animals. Working with reptiles can be fascinating, and there's a growing inte...
+
+🤖 Fine-tuned 3B (Knowledge):
+   Yeah, I agree. The first veterinary school in the world was founded in Lyon France in 1765.
+
+🤖 Original 8B:
+   That's a fascinating career goal.  Working with animals, especially exotic species like reptiles, can be a unique and rewarding experience. Many veterinarians do specialize in specific areas, such as:
+
+1.  **Companion animals**: This includes dogs, cats, and other pets commonly kept as companions.
+2...
+
+🤖 Fine-tuned 8B (Knowledge):
+   There are actually different levels of vet, you have a general practitioner, a general surgeon, or a specialist.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 6/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   Hello~!
+
+🤖 Original 3B:
+   Hello! It's nice to meet you. Is there something I can help you with or would you like to chat?
+
+🤖 Fine-tuned 3B (Knowledge):
+   Hello!  I love the day of the week we are on.  It is Thursday!  How about you?
+
+🤖 Original 8B:
+   Hello! How can I assist you today?
+
+🤖 Fine-tuned 8B (Knowledge):
+   I'm so happy to see that you're here!  Are you ready to have a good time?
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 7/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   Do you play any athletic sports? I enjoy frisbee golf and soccer!
+
+🤖 Original 3B:
+   I'm just a language model, I don't have a physical body, so I don't play sports. However, I can certainly chat with you about your favorite sports!
+
+Frisbee golf and soccer are both great sports that require strategy, skill, and teamwork. Frisbee golf, also known as disc golf, is a fun and accessibl...
+
+🤖 Fine-tuned 3B (Knowledge):
+   I do not. I do enjoy frisbee though! I love that it is a recreational activity that is played in an open area with a frisbee.
+
+🤖 Original 8B:
+   I'm glad you enjoy playing sports. As a computer program, I don't have a physical body, so I don't engage in athletic activities like frisbee golf or soccer. However, I can provide information and answer questions about these sports if you're interested.
+
+Frisbee golf and soccer are both fun and pop...
+
+🤖 Fine-tuned 8B (Knowledge):
+   I love to play frisbee golf. It is a great recreational sport that is played on a course with 18 holes.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 8/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   I like BBC network
+I also like watching the British Broadcasting Corporation.
+What do you know about BBC
+Well BBC is a British public service broadcaster.
+What more?
+Well the headquarters are in London.
+What kind of news do they specialize?
+
+🤖 Original 3B:
+   The BBC (British Broadcasting Corporation) is indeed a renowned public service broadcaster. Here are some additional facts about the BBC:
+
+1. **Public Service Broadcasting**: The BBC is a publicly funded broadcaster, which means that it is funded through a license fee paid by households in the UK, r...
+
+🤖 Fine-tuned 3B (Knowledge):
+   They specialize in general entertainment and other programs.
+
+🤖 Original 8B:
+   You're a fan of the BBC.  Here's more information about the BBC:
+
+1.  **Mission**: The British Broadcasting Corporation (BBC) is a British public service broadcaster that operates on a public funding model, receiving a portion of its funding from a license fee paid by households owning a television ...
+
+🤖 Fine-tuned 8B (Knowledge):
+   BBC has a headquarters in Broadcasting House in London.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 9/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   I had a good friend who was really into horses and horse training, but I dont personally know anything about it, do you?
+Yes I know quite a bit about horses. They are trained for a variety of different things such as everyday care, and horse racing. 
+Yes! Also like they are trained to go over jumps and stuff too!
+Yes today horses and usually trained towards sporting pursuits but historically it was much different. 
+Right, as in they were used for transportation back in the old days? Like pulling wagons?
+
+🤖 Original 3B:
+   I'm glad you're interested in horses. Yes, horses have been an essential part of human history and have been used for various purposes, including transportation, work, and sporting activities.
+
+Historically, horses were indeed used for transportation, such as pulling carts, wagons, and carriages, wh...
+
+🤖 Fine-tuned 3B (Knowledge):
+   Yes and also horses were used for work such as farm work, military, and labor.
+
+🤖 Original 8B:
+   Horses have been used for transportation for centuries, and they were indeed used to pull wagons, carts, and carriages. In fact, horses were a primary mode of transportation before the invention of cars and other motorized vehicles.
+
+But horses were also used for many other purposes throughout histo...
+
+🤖 Fine-tuned 8B (Knowledge):
+   They were used for war and transportation. But not like that. They were trained to be used for different things like circus acts.
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+📝 Sample 10/10
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+🔹 INPUT:
+   I'm thinking about taking the family to Walt Disney World... Cliche, I know, but it seems so fun. I need some help preparing, though.
+Walt Disney World, officially known as the Walt Disney World Resort, is an entertainment complex in Bay Lake
+Right, I know that much so far. I guess, can we start with some history? Any cool historical facts?
+
+🤖 Original 3B:
+   Walt Disney World is indeed a magical destination. Let's dive into its fascinating history.
+
+Walt Disney World was founded in 1965 by Walt Disney himself, with the goal of creating a unique entertainment complex that would surpass his previous theme park, Disneyland in California. Walt Disney passed...
+
+🤖 Fine-tuned 3B (Knowledge):
+   I don't know much about the history, but it's located in Lake Buena Vista, Florida, near Orlando, and it's a huge resort.
+
+🤖 Original 8B:
+   Walt Disney World is indeed an iconic destination, and I'm happy to help you prepare for your trip. Here are some interesting historical facts about Walt Disney World:
+
+1.  **Planning and Development:** Walt Disney began planning Walt Disney World in the late 1960s, shortly after the success of Disn...
+
+🤖 Fine-tuned 8B (Knowledge):
+   It opened on October 1, 1971, to the public
+
+
+====================================================================================================
+  OUTPUT STATISTICS
+====================================================================================================
+
+📊 Original 3B:
+   Average length: 529.0 chars
+   Min length: 95 chars
+   Max length: 684 chars
+
+📊 Fine-tuned 3B (Knowledge):
+   Average length: 93.8 chars
+   Min length: 60 chars
+   Max length: 125 chars
+
+📊 Original 8B:
+   Average length: 522.1 chars
+   Min length: 34 chars
+   Max length: 654 chars
+
+📊 Fine-tuned 8B (Knowledge):
+   Average length: 97.6 chars
+   Min length: 43 chars
+   Max length: 149 chars
+
+
+
+====================================================================================================
+  ✅ COMPARISON COMPLETE
+====================================================================================================
+
+💡 TIP: Review the outputs to assess:
+   • Grammar: Correctness and fluency
+   • Paraphrase: Semantic preservation and diversity
+   • Knowledge: Factual accuracy and detail
+

@@ -1,0 +1,193 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                    🚀 QUICK REFERENCE GUIDE                                ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+█ REPOSITORY STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/home/
+├── configs/                  Training configurations
+│   ├── grammar/             Grammar correction (JFLEG)
+│   ├── paraphrase/          Paraphrasing (PAWS+QQP)
+│   ├── knowledge/           Knowledge enhancement
+│   └── dataset_comparison/  PAWS-only vs QQP-only
+│
+├── scripts/                 All working scripts
+│   ├── dataset_prep/       Dataset preparation
+│   ├── training/           Training launchers
+│   ├── evaluation/         Model evaluation
+│   └── monitoring/         Status checking
+│
+├── docs/                    Documentation
+├── logs/                    Training logs
+├── models/                  Fine-tuned models (6 total)
+├── data/                    Processed datasets
+└── archive/                 Old/deprecated files
+
+█ MOST COMMON COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔍 Evaluate All Models (~30-45 min):
+   /home/scripts/evaluation/run_evaluation.sh
+
+📊 View Evaluation Results:
+   python3 /home/scripts/evaluation/compare_results.py
+
+🏃 Train Grammar Model:
+   /home/scripts/training/train_3b_grammar.sh      # 3B model
+   /home/scripts/training/train_8b_grammar.sh      # 8B model
+
+🔄 Train Paraphrase Model:
+   /home/scripts/training/train_3b_paraphrase.sh   # 3B model
+   /home/scripts/training/train_8b_paraphrase.sh   # 8B model
+
+🧠 Train Knowledge Model:
+   /home/scripts/training/train_3b_knowledge.sh    # 3B model
+   /home/scripts/training/train_8b_knowledge.sh    # 8B model
+
+📈 Check Training Status:
+   /home/scripts/monitoring/check_status.sh
+   watch -n 2 nvidia-smi
+
+█ CONFIGURATION FILES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Grammar:
+   /home/configs/grammar/3b_grammar_jfleg.yaml
+   /home/configs/grammar/8b_grammar_jfleg.yaml
+
+Paraphrase:
+   /home/configs/paraphrase/3b_paraphrase_combined.yaml
+   /home/configs/paraphrase/8b_paraphrase_combined.yaml
+
+Knowledge:
+   /home/configs/knowledge/3b_knowledge.yaml
+   /home/configs/knowledge/8b_knowledge.yaml
+
+Dataset Comparison:
+   /home/configs/dataset_comparison/3b_paws_only.yaml
+   /home/configs/dataset_comparison/3b_qqp_only.yaml
+   /home/configs/dataset_comparison/8b_paws_only.yaml
+   /home/configs/dataset_comparison/8b_qqp_only.yaml
+
+█ DATASET PREPARATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Prepare Grammar Dataset:
+   python3 /home/scripts/dataset_prep/prep_jfleg.py
+
+Prepare Paraphrase Datasets:
+   /home/scripts/dataset_prep/run_all_paraphrase_prep.sh
+
+Prepare Knowledge Datasets:
+   /home/scripts/dataset_prep/run_all_knowledge_prep.sh
+
+Analyze Knowledge Datasets:
+   /home/scripts/dataset_prep/run_analyze_knowledge.sh
+
+█ DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Main README:
+   cat /home/README.md
+
+Evaluation Guide:
+   cat /home/docs/evaluation_guide.md
+
+Quick Evaluation Start:
+   cat /home/docs/evaluation_quickstart.txt
+
+Dataset Comparison Plan:
+   cat /home/docs/dataset_comparison_plan.md
+
+Knowledge Training Plan:
+   cat /home/docs/knowledge_training_plan.md
+
+█ TRAINING LOGS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+View Live Logs:
+   tail -f /home/logs/grammar/3b_grammar_training.log
+   tail -f /home/logs/paraphrase/8b_paraphrase_training.log
+   tail -f /home/logs/knowledge/3b_knowledge_training.log
+
+List All Logs:
+   ls -lh /home/logs/grammar/
+   ls -lh /home/logs/paraphrase/
+   ls -lh /home/logs/knowledge/
+   ls -lh /home/logs/monitoring/
+
+█ TRAINED MODELS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Grammar (JFLEG):
+   /home/models/llama32_3b_lora_factory/
+   /home/models/llama31_8b_lora_factory/
+
+Paraphrase (PAWS+QQP):
+   /home/models/llama32_3b_paraphrase_lora/
+   /home/models/llama31_8b_paraphrase_lora/
+
+Knowledge (Wikipedia+KILT):
+   /home/models/llama32_3b_knowledge_lora/
+   /home/models/llama31_8b_knowledge_lora/
+
+█ W&B DASHBOARDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Grammar:
+   https://wandb.ai/jshim0978/jfleg-llama-lora-comparison
+
+Paraphrase:
+   https://wandb.ai/jshim0978/paraphrase-llama-comparison
+
+Knowledge:
+   https://wandb.ai/jshim0978/knowledge-llama-enhancement
+
+Dataset Comparison:
+   https://wandb.ai/prml-nlp/paraphrase-dataset-comparison
+
+█ TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Check GPU:
+   nvidia-smi
+   watch -n 2 nvidia-smi
+
+Check Running Processes:
+   ps aux | grep llamafactory
+
+Kill Process:
+   kill -9 <PID>
+
+Check Disk Space:
+   df -h /home
+
+Clear Cache:
+   rm -rf /home/hf_cache/hub/*
+
+█ ENVIRONMENT VARIABLES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+All training scripts automatically set:
+   HF_HOME=/home/hf_cache
+   TRANSFORMERS_CACHE=/home/hf_cache
+   WANDB_API_KEY=<your_key>
+   CUDA_VISIBLE_DEVICES=0 (or 1)
+
+█ ARCHIVE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Old/deprecated files moved to:
+   /home/archive/
+
+Old logs moved to:
+   /home/logs/archive/
+
+═══════════════════════════════════════════════════════════════════════════
+
+💡 TIP: Bookmark this file for quick access!
+     cat /home/QUICK_REFERENCE.txt
+
+═══════════════════════════════════════════════════════════════════════════
+

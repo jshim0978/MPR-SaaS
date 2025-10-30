@@ -1,0 +1,15 @@
+Metric,Original 3B,Fine-tuned 3B,Original 8B,Fine-tuned 8B,Winner
+Output Style,Verbose explanatory,Direct concise,Very verbose detailed,Direct concise,Fine-tuned models
+Avg Output Length (words),45,16,52,17,Fine-tuned models (3x shorter)
+Exact Match Rate,10%,70%,10%,60%,Fine-tuned 3B (7x better)
+Over-correction Rate,20%,0%,30%,0%,Fine-tuned models (perfect)
+Inference Speed (sec),2.22,0.58,2.36,0.72,Fine-tuned 3B (3.8x faster)
+Memory Usage (GB),6.5,7.8,15.2,17.8,Original 3B (lowest)
+Production Ready,No,Yes,No,Yes,Fine-tuned models
+Adds Headers,"The corrected sentence is:",None,"The corrected sentence is:",None,Fine-tuned models
+Provides Explanations,Always,Never,Always,Never,Fine-tuned models
+Minimal Editing,No,Yes,No,Yes,Fine-tuned models
+Consistent Output,Variable,Predictable,Variable,Predictable,Fine-tuned models
+Best Use Case,N/A,jw2 Cleaner (IDEAL),N/A,Complex cases (backup),Fine-tuned 3B for jw2
+Training Success Rate,N/A,100%,N/A,100%,All completed successfully
+Cost per 1000 requests,Higher (slower),Lower (3.8x faster),Highest (slowest + big),Lower (3.3x faster),Fine-tuned 3B

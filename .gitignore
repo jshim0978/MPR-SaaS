@@ -1,0 +1,115 @@
+# ============================================================================
+# LARGE FILES - DO NOT COMMIT
+# ============================================================================
+
+# Model weights (deploy separately)
+models/
+*.pth
+*.bin
+*.safetensors
+*.h5
+*.ckpt
+
+# Model caches
+hf_cache/
+.cache/
+
+# Datasets (too large for git)
+data/
+*.arrow
+*.jsonl
+*.json
+
+# EXCEPTION: Keep dataset registry for LLaMA-Factory
+!LLaMA-Factory/data/dataset_info.json
+
+# ============================================================================
+# TRAINING ARTIFACTS - LOCAL ONLY
+# ============================================================================
+
+# Training logs
+logs/
+*.log
+
+# Training outputs
+runs/
+outputs/
+checkpoints/
+saves/
+
+# Weights & Biases
+wandb/
+mpr/wandb/
+mpr/tmp/
+
+# ============================================================================
+# LLAMAFACTORY - EXCLUDE FRAMEWORK (too large)
+# ============================================================================
+
+# Exclude entire LLaMA-Factory except dataset_info.json
+LLaMA-Factory/
+!LLaMA-Factory/data/
+!LLaMA-Factory/data/dataset_info.json
+
+# ============================================================================
+# PYTHON
+# ============================================================================
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.whl
+
+# ============================================================================
+# ENVIRONMENT
+# ============================================================================
+
+.env
+.venv
+venv/
+ENV/
+env/
+
+# ============================================================================
+# IDE & EDITORS
+# ============================================================================
+
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# ============================================================================
+# OS & TEMPORARY FILES
+# ============================================================================
+
+Thumbs.db
+*.tmp
+*.temp
+tmp/
+.cache/
+
+# ============================================================================
+# WHAT WILL BE COMMITTED:
+# ============================================================================
+# ✅ configs/          - All training configurations
+# ✅ scripts/          - All working scripts  
+# ✅ docs/             - Documentation
+# ✅ .gitignore        - This file
+# ✅ README.md         - Main documentation
+# ✅ QUICK_REFERENCE.txt - Quick commands
+# ✅ requirements.txt  - Python dependencies
+# ✅ LLaMA-Factory/data/dataset_info.json - Dataset registry
+# ============================================================================
+
