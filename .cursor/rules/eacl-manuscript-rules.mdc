@@ -1,0 +1,282 @@
+# MPR‑SaaS Node Rules (.mdc)
+# Version: v1.0 — 2025‑10‑31 (Asia/Seoul)
+# Scope: Per‑node Cursor rules for implementing the PRaaS/MPR‑SaaS framework
+
+> This file defines **separate rule blocks** for each node/session. Open a new Cursor session on the target node and paste only its block.
+
+================================================================================
+NODE: jw1  (Master / Gateway + Arbiter + Merger + Judge)
+IP: 129.254.202.251  | GPU: none
+================================================================================
+// PURPOSE
+// jw1 hosts the HTTP gateway (/infer), HAProxy routing, Arbiter (MCTS‑lite), Merger (constraint‑aware),
+// and Judge (calls external GPT‑x). It also runs the Benchmark Runner and metrics aggregation.
+
+// NON‑NEGOTIABLES
+- Backbone for headline results: meta‑llama/Llama‑3.2‑3B‑Instruct (frozen). All routing/merging assumes this.
+- Decoding constants for target model calls (if any local): temperature=0.2, top_p=0.9, max_new_tokens=512.
+- Success criterion: ≥25% HHEM reduction w/ ≤3% utility drop.
+
+// SERVICES & PORTS (jw1)
+- HAProxy: 80 (HTTP), 443 (TLS, optional), stats:9000
+- Gateway (FastAPI): 8000  → /infer, /metrics, /healthz
+- Arbiter: 9100 → /arbiter/select
+- Merger: 9104 → /merger/merge
+- Judge: 9105 → /feedback/judge (external GPT‑x; no GPU)
+
+// ROUTING TARGETS
+- Cleaner → http://129.254.202.252:9101/clean
+- Describer → http://129.254.202.253:9102/describe
+- Paraphraser → http://129.254.202.129:9103/paraphrase
+
+// API CONTRACT (shared)
+Request envelope (all endpoints accept):
+{
+  "request_id": "uuid4",
+  "prompt": "string",               // raw user prompt
+  "decode_cfg_hash": "sha256",      // hash over decode config
+  "budget": {"total_tokens": 512, "role_caps": {"clean":256,"para":384,"desc":192}},
+  "meta": {"dataset": "optional", "seed": 13}
+}
+
+Role response (Cleaner/Describer/Paraphraser):
+{
+  "candidates": [
+    {"text":"...","token_len":123,"span_map":[[0,12],[25,40]],"notes":["grammar","units"]}
+  ],
+  "usage": {"input": t_in, "output": t_out}
+}
+
+Arbiter response:
+{
+  "branches": ["CLN","PAR","DESC","CLN->PAR","CLN||DESC"],
+  "scores": {"CLN":0.41,"PAR":0.37,...},
+  "chosen": ["CLN","CLN||DESC"],
+  "estimates": {"d_drift":0.06,"d_tokens":210}
+}
+
+Merger response:
+{
+  "final_prompt":"...",
+  "guards": {"intent_ok":true,"format_ok":true,"budget_ok":true},
+  "drift": 0.04,
+  "change_log":["kept constraints: A,B","reordered: X→Y"],
+  "usage": {"merge_tokens": t_merge}
+}
+
+Judge response:
+{"verdict":"ok|hallucination|abstain","confidence":0.82,"flags":["unsupported_claim"],"notes":"..."}
+
+Gateway /infer response:
+{
+  "final_prompt":"...",
+  "target_out":"...",                   // downstream model output (if called from here)
+  "stage_tokens": {"clean":...,"para":...,"desc":...,"arb":...,"merge":...,"judge":...},
+  "p95_ms": 0,
+  "cost_usd": 0.0,
+  "decode_cfg_hash":"sha256",
+  "logs":"s3://… or path"
+}
+
+// ARBITER (MCTS‑lite) — jw1
+- Palette B = { CLN, PAR, DESC, CLN->PAR, CLN||DESC }; K ≤ 3.
+- Score S(b) = û(x', b) − λ_tok·Δ̂_tok(b) − λ_drift·d̂rift(b); defaults: λ_tok=0.001, λ_drift=0.2.
+- Feature extractor for û: spelling rate, lexical entropy, TTR, JSON validity, slot coverage, len/schema ratio.
+
+// MERGER — jw1
+- Guards: intent ≥ τ (0.92) at doc/slot levels; minimal‑edit tie‑break by û; enforce schema; stitch non‑overlapping spans under budget; fail‑safe to x'.
+
+// FALLBACK POLICY — orchestrated by jw1
+- Trigger only if the **same intent** is judge‑flagged twice → call kcloud/OPRO header‑only one pass; log to results/fallback.csv.
+
+// OBSERVABILITY
+- /metrics Prometheus; RED per service; write stage tokens to results/stage_tokens.csv.
+- p95 end‑to‑end SLO ≤ 2.0 s.
+
+// SECURITY
+- JWT between jw1↔workers; allowlist worker IPs in HAProxy; optional mTLS.
+
+// HAPROXY SKETCH
+frontend f_mpr
+  bind *:80
+  acl is_cleaner path_beg /clean
+  acl is_describer path_beg /describe
+  acl is_paraphraser path_beg /paraphrase
+  use_backend b_cleaner if is_cleaner
+  use_backend b_describer if is_describer
+  use_backend b_paraphraser if is_paraphraser
+  default_backend b_gateway
+backend b_gateway
+  server gw 127.0.0.1:8000 check
+backend b_cleaner
+  server cln 129.254.202.252:9101 check
+backend b_describer
+  server dsc 129.254.202.253:9102 check
+backend b_paraphraser
+  server par 129.254.202.129:9103 check
+
+// SMOKE TESTS (from jw1)
+curl -sS http://127.0.0.1:8000/healthz
+curl -sS -X POST http://127.0.0.1:8000/infer -H 'content-type: application/json' -d '{"request_id":"test","prompt":"plese giv me info about qwntum computng in korea??","decode_cfg_hash":"deadbeef","budget":{"total_tokens":512}}' | python3 -m json.tool
+
+================================================================================
+NODE: jw2  (Cleaner Service)
+IP: 129.254.202.252  | GPU: 1×A30
+================================================================================
+// PURPOSE
+// Grammar + noise cleanup; no new facts; returns k candidates with span maps.
+
+// SERVICE
+- FastAPI on :9101 → /clean, /healthz, /metrics
+- Default model: Llama‑3.2‑3B‑Instruct + `llama32_3b_grammar_lora`
+- Optional appendix model: Llama‑3.1‑8B + `llama31_8b_grammar_lora` (feature flag)
+
+// ENV
+MODEL_ID=meta-llama/Llama-3.2-3B-Instruct
+LORA_ADAPTER=llama32_3b_grammar_lora
+PORT=9101
+ROLE=CLEANER
+MAX_ROLE_TOKENS=256
+FANOUT_K=4
+
+// CONTRACT
+POST /clean {request_id, prompt, budget.role_caps.clean, …} → {candidates:[…], usage}
+Constraints: preserve intent, fix grammar/units/punctuation/lists, insert neutral `[clarify: …]` only, never add facts.
+
+// OBSERVABILITY & SLO
+- /metrics Prometheus; report input/output tokens, latency histogram; p95 ≤ 400 ms per request.
+
+// SMOKE TEST
+curl -sS -X POST http://0.0.0.0:9101/clean -H 'content-type: application/json' -d '{"request_id":"t1","prompt":"plese giv me info about qwntum computng?"}' | python3 -m json.tool
+
+================================================================================
+NODE: jw3  (Description Generator)
+IP: 129.254.202.253  | GPU: 1×A30
+================================================================================
+// PURPOSE
+// Lightweight context/definitions for competency (1–2 sentences). Header‑slot filling only; no retrieval.
+
+// SERVICE
+- FastAPI on :9102 → /describe, /healthz, /metrics
+- Default model: Llama‑3.2‑3B‑Instruct + `llama32_3b_wikipedia_only_lora`
+- Optional: `llama31_8b_wikipedia_only_lora`
+
+// ENV
+MODEL_ID=meta-llama/Llama-3.2-3B-Instruct
+LORA_ADAPTER=llama32_3b_wikipedia_only_lora
+PORT=9102
+ROLE=DESCRIBER
+MAX_ROLE_TOKENS=192
+FANOUT_K=3
+
+// CONTRACT
+POST /describe {request_id, prompt, …} → {candidates:[{text,token_len,span_map}], usage}
+Rules: header slots only (audience/objective/style/schema); no external facts; concise definitional help.
+
+// SLO
+p95 ≤ 400 ms; expose /metrics.
+
+================================================================================
+NODE: kcloud  (Paraphraser + Fallback Executor)
+IP: 129.254.202.129  | GPU: 1×A30
+================================================================================
+// PURPOSE
+// Task‑aware rephrasing & disambiguation; runs OPRO/ProTeGi **header‑only** fallback when jw1 requests it.
+
+// SERVICE
+- FastAPI on :9103 → /paraphrase, /fallback, /healthz, /metrics
+- Default model: Llama‑3.2‑3B‑Instruct + `llama32_3b_paraphrase_lora`
+- Optional appendix: Llama‑3.1‑8B + `llama31_8b_paraphrase_lora`
+
+// ENV
+MODEL_ID=meta-llama/Llama-3.2-3B-Instruct
+LORA_ADAPTER=llama32_3b_paraphrase_lora
+PORT=9103
+ROLE=PARAPHRASER
+MAX_ROLE_TOKENS=384
+FANOUT_K=4
+
+// CONTRACTS
+POST /paraphrase {request_id, prompt, …} → {candidates:[…], usage}
+POST /fallback {header_only, request_id, prompt, policy:{type:"OPRO"|"ProTeGi", iters:1}} → {header,new_header,notes,usage}
+
+// SLO
+p95 ≤ 500 ms for /paraphrase; ≤ 1.0 s for /fallback.
+
+================================================================================
+NODE: sbs29.etri.re.kr  (Training Node; offline only)
+IP: 129.254.184.194  | GPU: 2×L40
+================================================================================
+// PURPOSE
+// Dedicated to fine‑tuning LoRA adapters (Cleaner/Paraphraser/Describer). Not part of live path.
+
+// EXPECTATIONS
+- Use bf16, flash‑attn (if available), LoRA ranks: 3B→r16, 8B→r32; cosine schedule, wd=0.1; early stop via proxy judge.
+- Save artifacts with SHA256; publish to an internal registry accessible by jw2/jw3/kcloud.
+- Emit `manifests/run_YYYYMMDD_HHMM.json` and push `references.bib` updates if any dataset changes.
+
+================================================================================
+ASSIGNMENTS SUMMARY
+- jw1: Gateway + Arbiter + Merger + Judge + BenchRunner + HAProxy.
+- jw2: Cleaner (3B default; 8B appendix flag).
+- jw3: Describer (3B default; 8B appendix flag).
+- kcloud (A30): Paraphraser + Fallback executor.
+- sbs29 (2×L40): LoRA training & packaging only.
+
+================================================================================
+BUDGETS & TUNABLES (shared constants)
+K=3; role_caps: clean=256, para=384, desc=192; total_prompt_budget=512.
+λ_tok=0.001; λ_drift=0.2; intent_threshold τ=0.92.
+Decode: temperature=0.2, top_p=0.9, max_new_tokens=512, n=1.
+
+================================================================================
+ERROR CODES (common)
+E_TIMEOUT, E_SCHEMA, E_BUDGET, E_DRIFT, E_UPSTREAM, E_BADJWT.
+Return as {"error":{"code":"E_…","message":"…"}} with HTTP 4xx/5xx.
+
+================================================================================
+OBSERVABILITY (common)
+- /metrics (Prometheus): counters {req_total, err_total}, histograms {latency_ms_bucket}, gauges {gpu_mem, stage_tokens}.
+- Stage token CSV rows: request_id, clean, para, desc, arb, merge, judge, total.
+
+================================================================================
+SECURITY (common)
+- JWT signed by jw1; short TTL (5 min); workers verify iss=\"jw1\" and aud in {cleaner,describer,paraphraser}.
+- HAProxy allowlist: {129.254.202.251, .252, .253, .129}.
+
+================================================================================
+1‑WEEK EXECUTION PLAN (compressed)
+Day 1 (Mon):
+- jw1: stand up HAProxy + Gateway skeleton; define contracts; health/metrics all nodes.
+Day 2 (Tue):
+- Implement Arbiter (jw1) + feature extractor; wire Cleaner/Describer/Paraphraser calls (parallel).
+Day 3 (Wed):
+- Implement Merger (jw1) with 4 guards; emit stage_tokens.csv; end‑to‑end smoke.
+Day 4 (Thu):
+- Judge service + fallback path (kcloud:/fallback); add JWT + allowlist; p95 profiling.
+Day 5 (Fri):
+- Benchmark Runner (jw1) + HHEM scaffolding; generate tables/main.tex & figs/pipeline.pdf.
+Day 6 (Sat):
+- Ablations + style/portability tables; CI/bootstrap CIs; decode hash in captions.
+Day 7 (Sun):
+- Polish + error analysis examples; finalize 8‑page draft hooks; artifact manifest.
+
+================================================================================
+CURSOR COMMAND SNIPPETS (for PRs)
+- feat(jw1): gateway + contracts + haproxy; seeds=13 hash=… decode=…
+- feat(arbiter): MCTS‑lite scoring; K=3; λ_tok=0.001 λ_drift=0.2
+- feat(merger): 4‑guard stitch; τ=0.92; span_map alignment
+- feat(cleaner|describer|paraphraser): role servers + metrics + fanout
+- feat(fallback): header‑only OPRO one‑pass + logs
+- feat(bench): runner + summary.csv + tables/main.tex
+
+================================================================================
+SMOKE CURLS (from jw1)
+# Cleaner
+curl -sS -X POST http://129.254.202.252:9101/clean -H 'content-type: application/json' -d '{"request_id":"r1","prompt":"plese giv me info about qwntum computng"}' | python3 -m json.tool
+# Describer
+curl -sS -X POST http://129.254.202.253:9102/describe -H 'content-type: application/json' -d '{"request_id":"r2","prompt":"Quantum computing in Korea"}' | python3 -m json.tool
+# Paraphraser
+curl -sS -X POST http://129.254.202.129:9103/paraphrase -H 'content-type: application/json' -d '{"request_id":"r3","prompt":"Tell me about quantum computing in Korea."}' | python3 -m json.tool
+# Gateway
+curl -sS -X POST http://129.254.202.251:8000/infer -H 'content-type: application/json' -d '{"request_id":"r4","prompt":"plese giv me info about qwntum computng in korea??"}' | python3 -m json.tool
