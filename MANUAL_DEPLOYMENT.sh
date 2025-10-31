@@ -30,8 +30,10 @@ rm -rf temp
 # OR if /home already has .git:
 git pull origin main
 
-# Install dependencies:
-pip3 install -r requirements.txt --user
+# Install dependencies (if requirements.txt exists):
+if [ -f requirements.txt ]; then
+    pip3 install -r requirements.txt --user
+fi
 
 # Verify:
 ls -la /home
