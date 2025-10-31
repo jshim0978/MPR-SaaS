@@ -1,0 +1,186 @@
+# title: MPR-Agents — Minimal Project Rules (No Commands)
+# scope: project
+# description: Keep Cursor aligned with our plan: two-stage input refinement (Cleaner + Describer), fixed 3B backbone, parallel microservices, rollback, and telemetry for low-cost/low-latency hallucination reduction.
+# visibility: show_rules
+# autoAttach: true
+attachments:
+  - "orchestrator/**"
+  - "workers/**"
+  - "mpr/**"
+  - "prompts/**"
+  - "config/**"
+  - "eval/**"
+  - "finetune/**"
+  - "reports/**"
+  - "runs/**"
+  - "scripts/**"
+  - "**/*.py"
+  - "Dockerfile*"
+  - "Makefile"
+  - "pyproject.toml"
+  - "requirements*.txt"
+
+---
+section: Problem & Goal (What we’re building)
+content: |
+  - Problem: Ill-formed prompts (typos, vagueness, missing context) increase hallucinations.
+  - Goal: Reduce hallucinations **from the input side** with two lightweight stages:
+      1) Cleaning (typo/grammar & keyword disambiguation)
+      2) Description/spec generation (add compact context)
+  - Constraint: **Backbone fixed** — Llama-3.2-3B-Instruct; decoding frozen across control/MPR. Gains must come from refinement, not scaling.
+  - Claim: With **parallel, cloud-native microservices**, we keep latency and cost low (small models, local inference) while improving reliability.
+
+---
+section: Minimal Architecture (Keep it small & parallel)
+content: |
+  - Nodes:
+      jw1 (CPU): Orchestrator (router/skip-gate/combiner/telemetry/rollback)
+      jw2 (A30): Cleaner worker (typo + keyword disamb.)
+      jw3 (A30): Describer worker (JSON spec + short summary)
+      L40Sx2: Fine-tuning only (produce LoRA adapters); not used at runtime.
+  - Data flow (DAG, no cycles):
+      user → jw1/arbiter → (in parallel) jw2:cleaner ∥ jw3:descr → jw1/combiner → fixed 3B answerer
+  - Skip-gate: If prompt is already well-formed, answer directly (no refinement).
+  - Parallelism: Cleaner and Describer may run concurrently; choose best refined prompt deterministically.
+  - Rollback: Each node is idempotent and artifacts are persisted; we can revert to any prior step and replay deterministically.
+
+---
+section: Services & Layout (Don’t invent folders)
+content: |
+  - Repo layout:
+      orchestrator/
+      mpr/{common,arbiter,telemetry}
+      workers/{cleaner,descr}
+      prompts/
+      config/
+      eval/{data,scripts}
+      finetune/
+      reports/
+      runs/
+      scripts/
+  - All HTTP services: FastAPI (async), expose `/health` and structured errors.
+
+---
+section: Fixed-Model Policy (Non-negotiable)
+content: |
+  - Backbone: meta-llama/Llama-3.2-3B-Instruct for **all** stages and control.
+  - Decoding defaults (edit only in `config/decoding.json`):
+      { "temperature": 0.2, "top_p": 0.9, "max_tokens": 512, "presence_penalty": 0.0, "frequency_penalty": 0.0, "seed": 42 }
+  - Do not change model size or per-call decoding in code; read once from config.
+  - LoRA adapters: optional at runtime; enabling them must not alter decoding settings.
+
+---
+section: Orchestrator (jw1) — Simple Rules
+content: |
+  - Endpoints:
+      POST /infer {prompt, run_id?, options?} → {final_prompt, answer?, stages, timings, run_id}
+      GET  /runs/{id}/timeline → chronological artifacts & edges
+      POST /rollback {run_id, to_node} → truncate downstream, replay deterministically
+  - Router policy:
+      - Compute an ill-formedness score; if below τ → **skip refinement**.
+      - Else, **fan-out** to Cleaner (typo + keyword) and Describer in parallel.
+      - Optionally ask **one** clarifying question if ambiguity > τ and ROI > threshold; then re-enter once.
+  - Combiner:
+      - Deterministic merge of candidate refined prompts (JSON spec → concise text).
+      - **No new facts allowed**; only use content produced by workers.
+
+---
+section: Workers (jw2: Cleaner, jw3: Describer) — Simple Rules
+content: |
+  - Cleaner (`workers/cleaner/app.py`):
+      POST /typo_fix → minimal edits only; preserve meaning.
+      POST /keyword_subst → replace vague terms with precise, domain-agnostic equivalents; **no invented entities**.
+  - Describer (`workers/descr/app.py`):
+      POST /describe → JSON:
+        { "task": "...", "entities": [...], "constraints": [...], "acceptance_criteria": [...] }
+        + ≤120-word natural summary.
+  - Both workers call local vLLM (OpenAI-compatible) at `http://localhost:8001/v1/chat/completions`.
+  - Both read decoding settings from `config/decoding.json`. LoRA adapter usage toggled by request flag.
+
+---
+section: Rollback & Idempotency (Reliability, not complexity)
+content: |
+  - Every node write is idempotent and linked to headers:
+      `X-Run-Id`, `X-Idempotency-Key`, `X-Stage-Name`
+  - Persist artifacts under:
+      runs/{YYYYMMDD}/{run_id}/{node}/
+        input.json
+        prompt.md
+        output.json
+        timing.json
+        config_hash.txt
+        adapter.txt
+        stderr.log
+  - Deterministic replay = same input, same seed, same decode config → same output (within model stochasticity bounds).
+
+---
+section: Telemetry & Cost (Keep it visible)
+content: |
+  - Log per request and per node:
+      timestamps (start, end), latency_ms, tokens_in/out, adapter_id, seed, error class (if any).
+  - Cost model (OpenAI 4o equivalent) in `mpr/telemetry/cost.py`:
+      - Estimate $ from tokens using `config/prices.yml`.
+      - Expected paid calls (baseline):  A + A*(B/100)
+      - With MPR reduction R:          A + A*(B*(1−R)/100)
+      - Calls saved:                   Δ = A*B*R/100  (convert to $)
+  - Optional: CodeCarbon at orchestrator to approximate energy/CO₂.
+
+---
+section: Datasets & Finetuning (Only for adapters; runtime stays small)
+content: |
+  - Cleaning: JFLEG → typo/grammar.
+  - Describer: WikiDes → description/spec.
+  - Ill-formed eval: NoiseQA (main), plus optional factuality sets for triangulation.
+  - Fine-tune on L40Sx2 with LLaMA-Factory (LoRA). Export adapters; runtime (jw2/jw3) mounts them. Do not change backbone.
+
+---
+section: Evaluation (Show the point, not a platform)
+content: |
+  - Comparisons:
+      - Control (no refinement) vs. MPR-frozen vs. MPR-LoRA.
+      - Baselines: SelfCheckGPT (detection), Chain-of-Verification (verify-revise).
+  - Judges & metrics:
+      - GPT-4o-as-a-judge win/tie/loss for hallucination reduction (guard for prompt leakage).
+      - Vectara HHEM (factuality) where applicable.
+      - Latency p50/p95, tokens, cost ($, Δ vs. baseline).
+  - Report: one small table per run with 95% CI and brief error note.
+
+---
+section: Prompts & Safety (No invention, minimal edits)
+content: |
+  - Store prompts in `prompts/*.md` with header:
+      # version: vX.Y
+      # stage: cleaner/keyword/descr
+      # rules: (bulleted constraints)
+  - Cleaner: “minimal change”, “preserve meaning”, “do not add facts”.
+  - Keyword: “replace vague terms with precise, neutral synonyms”; “no entities unless present”.
+  - Describer: “emit JSON schema + concise summary”; “no unverifiable assertions”.
+  - All logs/artifacts must avoid PII; redact if present.
+
+---
+section: Quality Gates (Cursor behavior expectations)
+content: |
+  - Keep changes **small and scoped**; if multiple files, show a brief plan then apply incrementally.
+  - Always add `/health`, timeouts, retries w/ backoff, and telemetry when creating endpoints.
+  - Tests:
+      - Router decisions (skip vs. fan-out vs. clarify)
+      - Artifact hashing & replay equivalence
+      - Timeout/retry logic on worker calls
+  - Style: type hints, `pydantic` models, `ruff` + `black`. No secrets in code or logs.
+  - If rules conflict, prefer **fixed-model policy** and **simplicity** over adding new complexity.
+
+---
+section: Scope Discipline (What we will NOT do)
+content: |
+  - No adding more agent types unless needed to validate the two-stage claim.
+  - No RAG stack, no external search, no bigger backbones.
+  - No per-call decoding tweaks that break A/B parity.
+  - No non-deterministic changes without updating artifacts & seeds.
+
+---
+section: TL;DR (What to optimize for)
+content: |
+  - Simplicity: two stages (cleaner + describer), parallel, cloud-native.
+  - Attribution: fixed 3B model, same decode → gains are from refinement.
+  - Practicality: low latency, low cost; skip when not needed; rollback when things go wrong.
+  - Reproducibility: versioned configs, artifacts, seeds; one-command eval; small, clear reports.
