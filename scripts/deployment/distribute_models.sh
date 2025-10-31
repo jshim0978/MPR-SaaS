@@ -13,7 +13,7 @@ cat << 'EOF'
 📦 MODELS TO DISTRIBUTE:
   → jw2 (129.254.202.252):   Cleaner (Grammar 3B + 8B)
   → jw3 (129.254.202.253):   Describer (Wikipedia-only 3B + 8B)  
-  → kcloud (129.254.202.129): Backup/Testing (Wiki+Wikidata 3B + 8B)
+  → kcloud (129.254.202.129): Paraphraser (PAWS+QQP 3B + 8B)
 
 🔐 TRANSFER METHOD: rsync over SSH
 ⏱️  ESTIMATED TIME: 30-60 minutes
@@ -34,19 +34,19 @@ JW3_IP="129.254.202.253"
 KCLOUD_USER="root"  # or appropriate user
 KCLOUD_IP="129.254.202.129"
 
-# Models to transfer (based on FINAL_MODEL_SELECTION.md)
+# Models to transfer (based on 3-worker architecture)
 declare -A MODELS=(
-    # Describer (Wikipedia-only) → jw3
-    ["llama32_3b_wikipedia_only_lora"]="jw3"
-    ["llama31_8b_wikipedia_only_lora"]="jw3"
-    
     # Cleaner (Grammar) → jw2
     ["llama32_3b_grammar_lora"]="jw2"
     ["llama31_8b_grammar_lora"]="jw2"
     
-    # Backup/Testing (Wiki+Wikidata) → kcloud
-    ["llama32_3b_knowledge_wiki_only_lora"]="kcloud"
-    ["llama31_8b_knowledge_wiki_only_lora"]="kcloud"
+    # Describer (Wikipedia-only) → jw3
+    ["llama32_3b_wikipedia_only_lora"]="jw3"
+    ["llama31_8b_wikipedia_only_lora"]="jw3"
+    
+    # Paraphraser (PAWS+QQP) → kcloud
+    ["llama32_3b_paraphrase_lora"]="kcloud"
+    ["llama31_8b_paraphrase_lora"]="kcloud"
 )
 
 # Function to get node connection string
@@ -148,7 +148,7 @@ echo ""
 echo "📋 SUMMARY:"
 echo "  → jw2:    Cleaner (Grammar 3B + 8B)"
 echo "  → jw3:    Describer (Wikipedia-only 3B + 8B)"
-echo "  → kcloud: Backup/Testing (Wiki+Wikidata 3B + 8B)"
+echo "  → kcloud: Paraphraser (PAWS+QQP 3B + 8B)"
 echo ""
 echo "📝 Next steps:"
 echo "  1. Pull latest code on all nodes (see git_sync_nodes.sh)"

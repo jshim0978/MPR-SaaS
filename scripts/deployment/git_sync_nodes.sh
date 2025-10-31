@@ -13,7 +13,7 @@ cat << 'EOF'
   → jw1 (129.254.202.251): Orchestrator
   → jw2 (129.254.202.252): Cleaner (Grammar)
   → jw3 (129.254.202.253): Describer (Wikipedia)
-  → kcloud (129.254.202.129): Backup/Testing (Wiki+Wikidata)
+  → kcloud (129.254.202.129): Paraphraser (PAWS+QQP)
 
 📋 OPERATIONS:
   1. SSH to each node

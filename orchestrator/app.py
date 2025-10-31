@@ -5,6 +5,7 @@ import httpx
 
 CLEANER_URL = os.environ.get("CLEANER_URL", "http://129.254.202.252:8002")
 DESCR_URL   = os.environ.get("DESCR_URL",   "http://129.254.202.253:8003")
+PARA_URL    = os.environ.get("PARA_URL",    "http://129.254.202.129:8004")
 
 app = FastAPI(title="MPR Orchestrator")
 
@@ -13,7 +14,7 @@ class InferIn(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"ok": True, "cleaner": CLEANER_URL, "descr": DESCR_URL}
+    return {"ok": True, "cleaner": CLEANER_URL, "descr": DESCR_URL, "para": PARA_URL}
 
 async def call_json(url: str, json: dict):
     t0 = time.perf_counter()
@@ -38,13 +39,21 @@ async def infer(body: InferIn):
     t0 = time.perf_counter()
     clean_task = asyncio.create_task(call_json(f"{CLEANER_URL}/clean", {"text": prompt}))
     desc_task  = asyncio.create_task(call_json(f"{DESCR_URL}/describe", {"text": prompt}))
+    para_task  = asyncio.create_task(call_json(f"{PARA_URL}/paraphrase", {"text": prompt}))
     try:
-        (cleaned, clean_ms), (described, descr_ms) = await asyncio.gather(clean_task, desc_task)
+        (cleaned, clean_ms), (described, descr_ms), (paraphrased, para_ms) = await asyncio.gather(
+            clean_task, desc_task, para_task
+        )
     except httpx.HTTPError as e:
         raise HTTPException(status_code=500, detail=f"Worker error: {e}")
 
     final_prompt = cleaned.get("cleaned", prompt)
     desc = described.get("description", "")
+    para = paraphrased.get("paraphrased", "")
+    
+    # Merge: paraphrase the cleaned version, then add description
+    if para and para != final_prompt:
+        final_prompt = para
     if desc:
         final_prompt = f"{final_prompt}\n\nContext: {desc}"
 
@@ -53,6 +62,7 @@ async def infer(body: InferIn):
         "skipped": False,
         "cleaned": cleaned,
         "described": described,
+        "paraphrased": paraphrased,
         "final_prompt": final_prompt,
-        "latency_ms": {"cleaner": clean_ms, "descr": descr_ms, "total": total_ms}
+        "latency_ms": {"cleaner": clean_ms, "descr": descr_ms, "para": para_ms, "total": total_ms}
     }
