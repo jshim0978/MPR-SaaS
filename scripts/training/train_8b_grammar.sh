@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set environment variables
-export WANDB_API_KEY="24f409fbaaeba6cc7cfa494a259ef4d56664a7af"
+export WANDB_API_KEY="${WANDB_API_KEY:-your_wandb_key_here}"
 export WANDB_PROJECT="jfleg-llama-lora-comparison"
 export HF_HOME="/home/hf_cache"
 export TRANSFORMERS_CACHE="/home/hf_cache"

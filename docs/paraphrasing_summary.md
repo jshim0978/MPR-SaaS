@@ -117,7 +117,7 @@ All files saved in `/home/data/`:
 **For Llama 3.2 3B**:
 ```bash
 cd /home
-WANDB_API_KEY="24f409fbaaeba6cc7cfa494a259ef4d56664a7af" \
+WANDB_API_KEY="your_wandb_key_here" \
 WANDB_PROJECT="paraphrase-llama-comparison" \
 HF_HOME="/home/hf_cache" \
 TRANSFORMERS_CACHE="/home/hf_cache" \
@@ -129,7 +129,7 @@ llamafactory-cli train /home/llama32_3b_paraphrase_config.yaml
 **For Llama 3.1 8B** (start after 3B completes):
 ```bash
 cd /home
-WANDB_API_KEY="24f409fbaaeba6cc7cfa494a259ef4d56664a7af" \
+WANDB_API_KEY="your_wandb_key_here" \
 WANDB_PROJECT="paraphrase-llama-comparison" \
 HF_HOME="/home/hf_cache" \
 TRANSFORMERS_CACHE="/home/hf_cache" \
