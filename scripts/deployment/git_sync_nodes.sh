@@ -10,10 +10,10 @@ cat << 'EOF'
 ╚═══════════════════════════════════════════════════════════════════════════╝
 
 🎯 TARGET NODES:
-  → jw1 (129.254.202.251): Master/Gateway + Arbiter + Merger
-  → jw2 (129.254.202.252): Cleaner Service
-  → jw3 (129.254.202.253): Describer Service
-  → kcloud (129.254.202.129): Paraphraser + Fallback
+  → jw1 (129.254.202.251): Orchestrator
+  → jw2 (129.254.202.252): Cleaner (Grammar)
+  → jw3 (129.254.202.253): Describer (Wikipedia)
+  → kcloud (129.254.202.129): Backup/Testing (Wiki+Wikidata)
 
 📋 OPERATIONS:
   1. SSH to each node
@@ -32,7 +32,7 @@ declare -A NODES=(
 )
 
 REPO_PATH="/home"
-REPO_URL="YOUR_GIT_REPO_URL_HERE"  # Update with actual repo URL
+REPO_URL="https://github.com/jshim0978/MPR-SaaS.git"
 
 # Function to sync node
 sync_node() {

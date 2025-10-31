@@ -3,8 +3,8 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import httpx
 
-CLEANER_URL = os.environ.get("CLEANER_URL", "http://129.254.202.252:9001")
-DESCR_URL   = os.environ.get("DESCR_URL",   "http://129.254.202.253:9002")
+CLEANER_URL = os.environ.get("CLEANER_URL", "http://129.254.202.252:8002")
+DESCR_URL   = os.environ.get("DESCR_URL",   "http://129.254.202.253:8003")
 
 app = FastAPI(title="MPR Orchestrator")
 
@@ -37,7 +37,7 @@ async def infer(body: InferIn):
 
     t0 = time.perf_counter()
     clean_task = asyncio.create_task(call_json(f"{CLEANER_URL}/clean", {"text": prompt}))
-    desc_task  = asyncio.create_task(call_json(f"{DESCR_URL}/descr", {"text": prompt}))
+    desc_task  = asyncio.create_task(call_json(f"{DESCR_URL}/describe", {"text": prompt}))
     try:
         (cleaned, clean_ms), (described, descr_ms) = await asyncio.gather(clean_task, desc_task)
     except httpx.HTTPError as e:

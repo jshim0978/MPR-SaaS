@@ -12,6 +12,10 @@ lora_dropout: 0.05
 lora_target: all
 
 ### dataset
+# NOTE: "knowledge_combined" includes Wikipedia + Wikidata + KILT WOW (all 3 sources)
+# This model was trained but NOT selected for production.
+# Production uses: llama32_3b_wikipedia_only_lora (Wikipedia-only, 8.8/10 quality)
+# See: /home/docs/FINAL_MODEL_SELECTION.md
 dataset: knowledge_combined
 template: llama3
 cutoff_len: 512
