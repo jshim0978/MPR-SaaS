@@ -1,0 +1,88 @@
+# Token Pricing for Cost Calculation
+# All prices in USD per 1M tokens
+# Last updated: November 2025
+
+models:
+  # OpenAI GPT-4o (baseline comparison)
+  gpt-4o:
+    input: 2.50      # $2.50 per 1M input tokens
+    output: 10.00    # $10.00 per 1M output tokens
+  
+  gpt-4o-mini:
+    input: 0.15      # $0.15 per 1M input tokens
+    output: 0.60     # $0.60 per 1M output tokens
+  
+  # Anthropic Claude 3.5 Sonnet
+  claude-3-5-sonnet:
+    input: 3.00      # $3.00 per 1M input tokens
+    output: 15.00    # $15.00 per 1M output tokens
+  
+  # Meta Llama (our specialists)
+  llama-3.2-3b:
+    input: 0.10      # Estimated local inference cost
+    output: 0.10     # Amortized hardware/energy
+  
+  llama-3.1-8b:
+    input: 0.20      # Estimated local inference cost
+    output: 0.20     # Amortized hardware/energy
+  
+  llama-3.1-70b:
+    input: 0.80      # Estimated local inference cost (if available)
+    output: 0.80     # Amortized hardware/energy
+
+# MPR-SaaS worker costs (3 parallel workers)
+mpr_saas:
+  cleaner:          # jw2 (3B grammar model)
+    model: llama-3.2-3b
+    avg_input_tokens: 50
+    avg_output_tokens: 50
+  
+  describer:        # jw3 (3B Wikipedia model)
+    model: llama-3.2-3b
+    avg_input_tokens: 50
+    avg_output_tokens: 150   # More detailed descriptions
+  
+  paraphraser:      # kcloud (3B paraphrase model)
+    model: llama-3.2-3b
+    avg_input_tokens: 50
+    avg_output_tokens: 60
+  
+  # Total MPR-SaaS overhead per query
+  estimated_overhead:
+    input_tokens: 150        # 3 * 50 (parallel)
+    output_tokens: 260       # 50 + 150 + 60
+    cost_usd: 0.000041       # (150+260) * 0.10 / 1M
+
+# Baseline method token overheads
+baselines:
+  control:
+    overhead_tokens: 0       # No refinement
+  
+  template:
+    overhead_tokens: 10      # "Please clarify and correct: "
+  
+  cot:
+    overhead_tokens: 15      # "\n\nLet's break this down step by step:"
+  
+  gpt4_refine:
+    avg_refinement_tokens: 200   # GPT-4o refinement call (input + output)
+    model: gpt-4o
+  
+  claude_refine:
+    avg_refinement_tokens: 200   # Claude refinement call
+    model: claude-3-5-sonnet
+
+# Target LLM (final answer generation)
+target_llm:
+  default: llama-3.1-70b     # Use local 70B if available
+  fallback: gpt-4o-mini      # Otherwise use GPT-4o-mini
+  avg_input_tokens: 100      # Prompt length after refinement
+  avg_output_tokens: 200     # Typical response length
+
+# Cost calculation formulas
+# Control: target_llm_cost
+# Template/CoT: target_llm_cost (negligible overhead)
+# GPT-4 Refine: gpt4_refine_cost + target_llm_cost
+# Claude Refine: claude_refine_cost + target_llm_cost
+# MPR-SaaS: mpr_saas_overhead + target_llm_cost
+
