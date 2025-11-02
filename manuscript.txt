@@ -1,0 +1,2055 @@
+PRaaS: Using a Cluster of Small LLMs as Black-Box Prompt Refiners to
+Mitigate Casual Hallucinations
+
+Anonymous ACL submission
+
+001
+
+Abstract
+
+002
+003
+004
+005
+006
+007
+
+We address casual hallucinations—failures
+arising when everyday users submit ill-formed
+or underspecified prompts.
+We propose
+Prompt-Refinement-as-a-Service (PRaaS),
+a black-box, cloud-native layer that rewrites
+prompts before they reach the target LLM.
+PRaaS runs three fine-tuned small-LLM specialists—a C LEANER (grammar/denoising), a
+PARAPHRASER (clarity/structure), and a D E SCRIPTION G ENERATOR (lightweight context
+expansion)—under an A RBITER, M ERGER,
+and F EEDBACK loop. We instantiate two
+agent backbones (Llama-3.2-3B-Instruct and
+Llama-3.1-8B-Instruct) to isolate size effects
+with identical decoding. Evaluation uses Vectara HHEM as the primary hallucination metric (Vectara, 2024a,b; Chung and Team, 2024)
+and a two-sample GPT-5-as-a-judge protocol
+with reliability controls (Gu et al., 2024; Zheng
+et al., 2024; Schroeder et al., 2024; Yamauchi
+et al., 2025). Our SOTA-aligned panel covers hallucination, instruction adherence, robustness, and reasoning with budget-matched
+comparisons against global prompt optimizers
+(Ramnath et al., 2023; Yang et al., 2023; Fernando et al., 2023; Wang et al., 2024b) and
+input-side methods (Lin et al., 2025). Results
+(to be reported) target ≥25% relative HHEM
+reduction with ≤3% utility drop at fixed decoding, showing pre-inference, role-bounded edits
+can be cost-/latency-predictable.
+
+008
+009
+010
+011
+012
+013
+014
+015
+016
+017
+018
+019
+020
+021
+022
+023
+024
+025
+026
+027
+028
+029
+030
+031
+032
+033
+
+1
+
+034
+
+Large language models (LLMs) are now the default interface for drafting, analysis, and information access. As usage broadens, hallucination has
+become a mainstream usability risk. Many failures
+observed “in the wild” are not adversarial; they
+stem from casual usage: vague goals, missing constraints, typos, or omitted context. We term these
+casual hallucinations. Expecting non-experts to
+craft perfect prompts is unrealistic; what scales is a
+
+035
+036
+037
+038
+039
+040
+041
+042
+
+Figure 1 (placeholder). PRaaS at a glance:
+user prompt → A RBITER → {C LEANER,
+PARAPHRASER, D ESCRIPTION G ENERATOR
+} (parallel) → M ERGER → target LLM (fixed
+decoding) → GPT-5 signal → F EEDBACK.
+
+Figure 1: PRaaS overview (1-column).
+
+Introduction
+
+1
+
+system that repairs prompts automatically, preserving intent while making instructions actionable.
+
+043
+
+Pre-inference repair at fixed decoding. Global
+prompt optimizers (textual gradients, metaoptimization, MCTS/evolutionary search) often require multiple iterations/tokens (Ramnath et al.,
+2023; Yang et al., 2023; Fernando et al., 2023;
+Wang et al., 2024b).
+Reasoning templates
+(CoT/ToT, self-reflection) are complementary but
+not targeted at input-side defects (Wei et al., 2022;
+Yao et al., 2023; Madaan et al., 2023; Shinn et al.,
+2024). We instead focus on pre-inference mitigation with predictable latency/cost and strict attribution: target and agents share pinned decoding
+(temperature, top-p, max tokens).
+
+045
+
+Contributions. (1)
+A
+practical
+definition/taxonomy of casual hallucinations; (2)
+PRaaS, a cloud-native service with three rolealigned specialists, selective routing, constraintaware merging, and a budgeted fallback; (3)
+SOTA-plausible evaluation under budget-matched
+controls across hallucination, instruction following,
+robustness, and reasoning; (4) reproducible
+engineering with version pins, manifests, and
+judge-agreement CIs.
+
+058
+
+Design principles. (P1) Black-box safety; (P2)
+Minimal edits (preserve intent); (P3) Budget awareness (selective routing, single-shot edits, fallback
+
+068
+
+044
+
+046
+047
+048
+049
+050
+051
+052
+053
+054
+055
+056
+057
+
+059
+060
+061
+062
+063
+064
+065
+066
+067
+
+069
+070
+
+074
+
+only on repeated failures); (P4) Reproducibility
+(pinned decoding, manifests); (P5) Cloud-native
+scale (stateless microservices, idempotent endpoints, horizontal fan-out, backpressure).
+
+075
+
+2
+
+076
+
+Automatic prompt optimization (APO). Global
+search methods include textual gradients and
+optimizer-style prompts (Ramnath et al., 2023;
+Yang et al., 2023), evolutionary schemes (Fernando
+et al., 2023), and strategic planning (Wang et al.,
+2024b). Continuous/soft prompting (Lester et al.,
+2021; Li and Liang, 2021) and elicitation (Shin
+et al., 2020) offer complementary levers.
+
+071
+072
+073
+
+077
+078
+079
+080
+081
+082
+083
+084
+085
+086
+087
+088
+089
+090
+091
+092
+093
+094
+095
+096
+097
+098
+099
+100
+101
+102
+103
+104
+105
+106
+
+Hallucination and judges. We use Vectara’s
+HHEM (Vectara, 2024a,b; Chung and Team, 2024)
+with auxiliary probes (TruthfulQA (Lin et al.,
+2022), QAGS/Q2 (Wang and Cho, 2020; Honovich
+et al., 2021), SelfCheckGPT (Manakul et al., 2023),
+CoVe (Dhuliawala et al., 2023), faithfulness in summarization (Maynez et al., 2020)). LLM-judge reliability is monitored per Gu et al. (2024); Zheng
+et al. (2024); Schroeder et al. (2024); Yamauchi
+et al. (2025).
+
+108
+
+3.1
+
+Problem Setting and Objective
+
+109
+
+Given a user prompt x ∈ X and a black-box target
+model f : X → Y with pinned decoding θ (temperature, top-p, max tokens), our goal is to construct a
+minimally edited prompt x̃ such that the response
+y = f (x̃; θ) exhibits fewer hallucinations and improved instruction adherence than f (x; θ) under a
+strict budget:
+
+112
+113
+114
+115
+
+116
+
+where N (x) is a minimal-edit neighborhood
+(Sec. 3.8), sim is semantic similarity (embedding +
+lexical guards), τ ∈ (0, 1] is a drift threshold, and B
+is a per-request token/latency budget. Attribution is
+preserved by keeping f and θ fixed across all runs.
+
+117
+
+3.2
+
+122
+
+sim(x, x̃) ≥ τ,
+cost(x̃) ≤ B.
+
+Reasoning templates and self-feedback.
+Chain- and tree-structured prompting (Wei
+et al., 2022; Yao et al., 2023) and iterative
+self-feedback (Madaan et al., 2023; Shinn et al.,
+2024) improve reasoning but do not directly repair
+noisy/underspecified inputs.
+
+Method
+
+111
+
+(1)
+
+s.t.
+
+Input-side
+optimization.
+Formatting/normalization before inference reduces
+downstream errors; we incorporate an ADO-style
+pre-step (Lin et al., 2025). Retrofit attribution
+frameworks (Gao et al., 2023) and responsetrajectory tracking (Zhang et al., 2024) motivate
+our budgeted fallback.
+
+3
+
+
+
+= arg min E HHEM(f (x̃; θ))
+x̃∈N (x)
+
+Related Work
+
+107
+
+110
+
+x̃⋆
+
+2
+
+Fixed-Model Policy and Decoding
+
+118
+119
+120
+121
+
+We obey a Fixed-Model Policy: specialists use
+Llama-3.2-3B-Instruct (3B) by default, and a
+size study with Llama-3.1-8B-Instruct (8B) is reported. Weights are frozen post-training; decoding
+parameters are identical across all A/B and baseline runs. Improvements are thus attributable to
+PRaaS ’s edits/routing/merging, not target changes
+(cf. Ouyang et al., 2022; OpenAI, 2023).
+
+123
+
+3.3 Specialist Data and Instruction Templates
+
+131
+
+We build three role-aligned corpora with nonoverlapping splits and URL+hash de-duplication:
+
+132
+
+• C LEANER: JFLEG/BEA-style GEC patterns
+(Napoles et al., 2017; Bryant et al., 2019); synthetic typo/noise augmentation; unit normalization; malformed lists.
+• PARAPHRASER: paraphrase clarity without
+semantic change via PAWS/PAWS-X/MSRP
+(Zhang et al., 2019; Yang et al., 2019; Dolan
+and Brockett, 2005); instruction canonicalization
+(header, audience, constraints, format); negative
+near-duplicates with conflicting constraints.
+• D ESCRIPTION G ENERATOR: underspec repair
+via slot filling inspired by AmbigQA/ELI5 (Min
+et al., 2020; Fan et al., 2019); weak supervision
+from instruction-following schemas (e.g., IFEval
+keys) where the gold is a prompt header, not an
+answer.
+
+134
+
+Instances render with strict guardrails (Sec. 3.7).
+No external knowledge is introduced beyond clarifying, non-factual defaults.
+
+150
+
+3.4
+
+Fine-Tuning Recipe (All Specialists)
+
+153
+
+We attach LoRA adapters to frozen backbones with
+a uniform recipe to preserve attribution:
+
+154
+
+• Context 4k; dtype bf16; gradient checkpointing;
+flash attention (if available).
+
+156
+
+124
+125
+126
+127
+128
+129
+130
+
+133
+
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+
+151
+152
+
+155
+
+157
+
+170
+
+• LoRA rank {16, 32} (3B/8B), α=32, dropout
+0.05; targets: {q, k, v, o} and MLP up-proj.
+• Optimization AdamW (β1 =0.9, β2 =0.95, wd
+0.1); cosine schedule with 2% warmup; lr ∈
+{1e−4, 2e−4}; effective batch 256 via accumulation; early stop on a proxy judge (Sec. 3.11).
+• Losses CE on edited spans + edit-size regularizer λ∥x̃ − x∥1 to prefer short edits; for
+PARAPHRASER, a contrastive hinge loss against
+constraint-changing paraphrases.
+• Safety Regex/classifier filters prevent PII insertion and style drift; rejection sampling discards
+over-edits (sim<τtrain ).
+
+171
+
+3.5
+
+172
+
+We run a deterministic I NPUT F ORMATTER inspired by ADO (Lin et al., 2025) prior to any generation:
+
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+
+187
+
+3.6
+
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+
+(A) Need Estimator. A calibrated classifier
+g(x′ ) → {0, 1}3 predicts which roles are useful
+using features correlated with risk: spelling/lexical
+entropy, type-token ratio, list/JSON validity, slot
+coverage, contradiction heuristics, and prompt
+length vs. schema completeness.
+(B) MCTS-lite Branch Selection.
+most K ≤ 3 candidates among
+
+We explore at
+
+B = {{C LN}, {PAR}, {D ESC},
+
+200
+
+{C LN → PAR}, {C LN ∥ D ESC}}.
+
+202
+203
+
+(2)
+
+Here, C LN denotes C LEANER, PAR denotes
+PARAPHRASER, and D ESC denotes D ESCRIPTION
+G ENERATOR.
+3
+
+205
+206
+
+207
+
+Hyperparameters (K, λtok , λdrift ) are tuned on a
+small dev slice.
+
+208
+
+3.7
+
+210
+
+Specialists and Guarded Prompts
+
+Each specialist receives x′ plus a role-specific system prompt with guardrails:
+
+The A RBITER chooses a small set of branches (Selective) instead of AllOn:
+
+204
+
+(3)
+
+− (b)
+
+Arbiter (Selective Routing with
+MCTS-lite)
+
+199
+
+201
+
+S(b) = û(x′ , b) − (b)
+
+1. Canonicalize: bullets/numbering; key:value;
+ISO dates; units (SI + common); numerals.
+2. Deduplicate: collapse near-duplicate constraints via 3-gram overlap and semantic equivalence.
+3. Schema-lift: if a header exists, lift it; else create
+a lightweight header with empty slots.
+truncate free-text fields
+4. Budget-guard:
+to per-role caps (e.g., 512 for PARA PHRASER /D ESCRIPTION G ENERATOR ).
+
+186
+
+188
+
+We use a 1-ply tree with a learned utility proxy
+û that predicts judge gain per token. The branch
+score trades off expected gain, token cost, and drift:
+
+Input Formatter (ADO-style)
+
+This yields x′ . PRaaS (+ADO) toggles this in ablations.
+
+185
+
+Algorithm 1 A RBITER (MCTS-lite) Branch Selection
+Require: formatted prompt x′ , palette B, budget
+K
+1: C ← ∅
+2: for b ∈ B do
+d by shallow simula[ drift)
+3:
+estimate (∆tok,
+tion
+d
+[ − λdrift drift
+4:
+S(b) ← û(x′ , b) − λtok ∆tok
+5: end for
+6: return top-K branches by S(b) as C
+
+209
+
+211
+212
+
+• C LEANER: Fix grammar, typos, units, list structure; if ambiguous, place a neutral placeholder
+comment (e.g., ‘[clarify: temperature unit?]’); do
+not add facts or change constraints.
+• PARAPHRASER: Rephrase for clarity; compress
+redundancy; reorder steps; do not change meaning or inject new requirements; preserve all explicit constraints.
+• D ESCRIPTION G ENERATOR: If header slots
+are missing (audience, objective, style, output
+schema), fill with neutral defaults that do not add
+factual claims (e.g., audience: general technical
+reader). Never invent external knowledge.
+
+213
+
+Per-role candidates are length-capped (256–512 tokens) and include a span map (source–target alignment) for merging.
+
+226
+
+3.8
+
+229
+
+Merger (Constraint-Aware Selection &
+Synthesis)
+
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+
+227
+228
+
+230
+
+The M ERGER chooses or stitches spans from {ci }
+using four guards:
+
+231
+
+1. Intent preservation: sim(x, ci ) ≥ τ at
+document and constraint-span levels; detect
+dropped/altered constraints via slot diffing.
+
+233
+
+232
+
+234
+235
+
+Algorithm 2 PRaaS Inference (Single Request)
+Require: user prompt x; target f ; formatter F ; arbiter R; agents (Aclean , Apara , Adesc ); merger
+M ; decoding θ
+1: x′ ← F (x)
+▷ ADO-style pre-normalization
+2: C ← R(x′ ) ▷ Select up to K branches (Alg. 1)
+3: S ← ∅
+4: for branch b ∈ C in parallel do
+5:
+S ← S ∪ RUN B RANCH(b, x′ , A· ) ▷ each
+role length-capped
+6: end for
+7: x̃ ← M (S, x′ )
+▷ constraint-aware minimal
+edit
+8: y ← f (x̃; θ)
+9: if F LAGGED T WICE B Y J UDGE(x, x̃, y) then
+10:
+x̃ ← H EADERO NLY S EARCH(x̃)
+▷
+OPRO-1iter or ProTeGi-1pass
+11:
+y ← f (x̃; θ)
+12: end if
+13: return (x̃, y)
+
+236
+237
+238
+239
+240
+241
+242
+243
+244
+
+2. Minimal edits: prefer arg mini ∥ci −x∥ when
+multiple candidates satisfy (1); tie-break by predicted judge gain û.
+3. Format guard:
+enforce a consistent
+header/schema and target-friendly structure (list vs. JSON vs. paragraphs).
+4. Budgeted rank-select: stitch non-overlapping
+safe spans (with confidence thresholds); otherwise pick the best single candidate.
+
+246
+
+If any guard fails, M ERGER reverts to x′ (fail-safe).
+The merged prompt is x̃.
+
+247
+
+3.9
+
+248
+
+245
+
+d
+• Drift predictor drift(b):
+classifier that flags
+likely intent violations based on slot diffs and
+similarity.
+
+263
+
+We distill outcomes into R by minimizing a pairwise ranking loss over S(b) (Eq. 3), nudging the
+arbiter toward higher gain-per-token. Online we
+use exponential moving averages to stabilize routing.
+
+266
+
+3.12 Determinism, Seeds, and Reproducibility
+
+271
+
+We fix seeds (Python/NumPy/PyTorch), disable decoding features that affect tokenization timing, and
+keep n=1 decoding everywhere except the optional
+fallback. All configs (model digests, LoRA checkpoints, decoding, data snapshots) are persisted in a
+per-run manifest.
+
+272
+
+3.13
+
+278
+
+Complexity and Budgets
+
+264
+265
+
+267
+268
+269
+270
+
+273
+274
+275
+276
+277
+
+Let K be the max executed branches (K ≤ 3),
+Tr the per-role token cap. A request performs
+at most K specialist calls plus one target call
+(two if fallback triggers). Expected token cost
+≤ K · Tr + Ttarget + Tjudge ; latency is max parallel specialist time + target time. With K ≤ 3 and
+caps ≤512, PRaaS maintains predictable p95 while
+undercutting multi-iteration global search (Ramnath et al., 2023; Yang et al., 2023; Fernando et al.,
+2023; Wang et al., 2024b).
+
+279
+
+3.14
+
+289
+
+Implementation Notes
+
+280
+281
+282
+283
+284
+285
+286
+287
+288
+
+290
+
+254
+
+To remain attribution-faithful, we invoke a singleiteration global optimizer on the header only when
+the same intent is GPT-5-flagged twice: ProTeGi1pass (Ramnath et al., 2023) or OPRO-1iter (Yang
+et al., 2023). Body edits remain fixed. This keeps
+edits local, minimizes tokens, and isolates where
+search helps.
+
+PRaaS is implemented as stateless HTTP microservices (A RBITER, C LEANER, PARAPHRASER, D E SCRIPTION G ENERATOR , M ERGER , F EEDBACK ).
+Requests carry idempotent request_id and content hashes for safe retries. An internal sidecar
+orchestrates parallel specialist calls with exponential backoff/circuit breaking. Observability exports
+RED metrics and stage-wise token counters to support $ /query and gain-per-1k-tokens reporting.
+
+255
+
+3.10
+
+3.15
+
+299
+
+256
+
+3.11
+
+249
+250
+251
+252
+253
+
+Hybrid Fallback: Search-When-Needed
+
+Inference Pipeline
+
+258
+
+Feedback Learning and Policy
+Distillation
+
+We log tuples x, x′ , C, S, x̃, y, judge and train:
+
+259
+
+• Gain predictor û(x′ , b): regression predicting
+
+257
+
+260
+261
+262
+
+Threats to Attribution
+
+Two pitfalls confound attribution: (i) hidden decoding mismatches and (ii) search creep. We enforce
+(i) with a decode-hash in manifests; for (ii) we restrict search to a single header-only iteration and
+report candidate/iteration counts. Semantic drift
+is audited via slot diffing/similarity; violations fall
+back to x′ .
+
+∆HHEM (negative is good) or a normalized
+judge score from branch-local features (formatter
+stats, role heuristics, candidate lengths).
+4
+
+291
+292
+293
+294
+295
+296
+297
+298
+
+300
+301
+302
+303
+304
+305
+306
+
+307
+
+4
+
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+
+Parallelism & backpressure. Horizontal autoscaling semantics; bounded concurrency; retryafter; arbiter caps active branches.
+SLOs/budgets. Default p95 ≤ 2.0s; budgets split
+across stages; quality-per-token optimized by reducing unnecessary activations.
+
+320
+321
+
+5
+
+Experiments
+
+322
+
+5.1
+
+Setup
+
+323
+
+Agents. Two configs: all specialists use Llama3.2-3B-Instruct or Llama-3.1-8B-Instruct.
+Target. Fixed black-box chat model; decoding
+pinned across all A/B comparisons.
+Judge. Two-sample GPT-5 protocol with agreement and 95% CIs; abstentions recorded (Gu et al.,
+2024; Zheng et al., 2024; Schroeder et al., 2024;
+Yamauchi et al., 2025).
+Primary metric. Vectara HHEM (Vectara,
+2024a,b).
+Utility metrics. GSM8K EM, StrategyQA/CSQA
+accuracy, MT-Bench judge score, IFEval pass-rate,
+etc.
+System metrics. p95 latency and $ /query (stageattributed tokens).
+
+319
+
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+
+Facet
+
+Service topology. Stateless HTTP microservices;
+ingress with request_id; idempotent POSTs;
+backoff and circuit breaking.
+
+Reliability/observability/security. At-leastonce with server dedup; RED metrics, traces; PII
+redaction; version-pinned manifests.
+
+318
+
+Table 1: Evaluation panel: datasets, metrics, and rationale.
+
+Cloud-Native Architecture &
+Operations
+
+Tasks and datasets (SOTA-aligned panel). Hallucination/faithfulness: TruthfulQA (Lin et al.,
+2022), FActScore, FreshQA; Instruction/Dialogue:
+MT-Bench, IFEval; Prompt robustness: rephrasing/noise/overspec; Reasoning (APO-standard):
+GSM8K, StrategyQA, CSQA, BBH; Ambiguity/underspec: AmbigQA/ELI5 (Min et al.,
+2020; Fan et al., 2019); Grammar/noise: JFLEG/BEA (Napoles et al., 2017; Bryant et al.,
+2019). For breadth/context we additionally reference FEVER/SQuAD/Qasper/RAGTruth/MMLU
+(Thorne et al., 2018; Rajpurkar et al., 2016; Zhong
+et al., 2021; Islam et al., 2023; Hendrycks et al.,
+2021; Talmor et al., 2020).
+array, booktabs
+5
+
+Dataset(s)
+
+Metric(s)
+
+Rationale
+
+TruthfulQA;
+Hallucination FActScore;
+FreshQA
+
+Acc;
+FActScore;
+EM
+
+Complements
+HHEM with
+faithfulness and
+recency
+
+Instruction
+following
+
+MT-Bench;
+IFEval
+
+Judge score;
+Constraint
+pass
+
+Evaluates
+instruction
+compliance
+
+Prompt
+robustness
+
+Rephrase; Noise;
+Overspec
+(BOSS-style)
+
+Acc; Pass
+rate
+
+Stresses
+rephrasing,
+noise, and overspecification
+
+Reasoning
+(APO)
+
+GSM8K;
+StrategyQA;
+CSQA; BBH
+
+EM; Acc
+
+Canonical in
+OPRO,
+PromptBreeder,
+and
+PromptAgent
+
+Ambiguity /
+underspec
+
+AmbigQA; ELI5
+
+EM; Judge
+score
+
+Targets benefits
+from
+PARAPHRASER
+and
+D ESCRIPTION
+G ENERATOR
+
+Grammar /
+noise
+
+JFLEG;
+BEA-2019 (dev)
+
+GLEU;
+ERRANT
+
+Targets benefits
+from C LEANER
+
+Preprocessing and schema. Normalize numerals/units; de-duplicate bullet lists; canonicalize
+key–value prompts. Specialist outputs capped
+(256–512 tokens) to enforce minimal edits.
+
+353
+
+Compute and serving. 24–48 GB GPUs; one
+GPU per specialist; target on a separate worker.
+Seeds/versions pinned (Sec. 6).
+
+357
+
+Candidate budgets. Selective routing activates
+at most 2–3 branches. Fallback—when triggered—runs a single iteration over the header only
+(Ramnath et al., 2023; Yang et al., 2023).
+
+360
+
+5.2
+
+364
+
+Evaluation Protocols
+
+354
+355
+356
+
+358
+359
+
+361
+362
+363
+
+1. A/B (core): Original x vs. PRaaS x̃; identical
+decoding; report HHEM (primary), utility, p95,
+$.
+
+365
+
+2. Budget-matched:
+PRaaS vs. OPRO(1iter)/PromptBreeder(8×2)/PromptAgent(1pass) under matched tokens or p95 (Yang
+et al., 2023; Fernando et al., 2023; Wang et al.,
+2024b).
+
+368
+
+3. Routing strategies: Pass-through, AllOn, Selective, MCTS-lite.
+
+373
+
+366
+367
+
+369
+370
+371
+372
+
+374
+
+Table 2: Main results: Hallucination (HHEM ↓) and utility (% ↑); target decoding fixed.
+Open-QA/Reasoning
+
+Method
+
+Util ↑
+
+HHEM ↓
+
+Util ↑
+
+p95 (s) ↓
+
+$ /query ↓
+
+–
+–
+–
+–
+–
+–
+–
+–
+–
+
+–
+–
+–
+–
+–
+–
+–
+–
+–
+
+–
+–
+–
+–
+–
+–
+–
+–
+–
+
+–
+–
+–
+–
+–
+–
+–
+–
+–
+
+–
+–
+–
+–
+–
+–
+–
+–
+–
+
+–
+–
+–
+–
+–
+–
+–
+–
+–
+
+Table 3: Efficiency: gain per budget (vs. Original).
+Method
+
+Tok/
+Q
+
+$/
+Q
+
+∆
+HHEM
+
+∆HHEM
+/1kT
+
+Original
+OPRO (1-iter)
+PromptBreeder
+PromptAgent
+PRaaS (3B)
+PRaaS (8B)
+PRaaS (+ADO)
+
+–
+–
+–
+–
+–
+–
+–
+
+–
+–
+–
+–
+–
+–
+–
+
+–
+–
+–
+–
+–
+–
+–
+
+–
+–
+–
+–
+–
+–
+–
+
+Table 5: Routing quality: predicted vs. oracle path on
+defect-labeled slice.
+Oracle →
+
+Table 4: Edit conservatism: drift vs. hallucination.
+
+Original
+PRaaS (3B)
+PRaaS (8B)
+PRaaS (+ADO)
+OPRO (control)
+
+–
+–
+–
+–
+–
+
+–
+–
+–
+–
+–
+
+4. Agent size scaling: PRaaS (3B)→PRaaS (8B).
+
+376
+
+5. Facet stress tests: JFLEG/BEA (grammar),
+AmbigQA/ELI5 (underspec/ambiguity), robustness rephrasing/overspec.
+
+377
+378
+379
+380
+381
+382
+383
+384
+385
+386
+387
+388
+389
+
+Cln
+
+Par
+
+Dsc
+
+C∥D
+
+Cln
+Par
+Dsc
+C∥D
+
+–
+–
+–
+–
+
+–
+–
+–
+–
+
+–
+–
+–
+–
+
+–
+–
+–
+–
+
+Config
+
+–
+–
+–
+–
+–
+
+375
+
+Pred. ↓
+
+Table 6: Fallback frequency and marginal benefit/cost.
+
+Drift ∆HHEM ∆HHEM
+Intent
+↓
+(QA) ↓
+(ELI5) ↓ Viol. (%) ↓
+–
+–
+–
+–
+–
+
+System
+
+HHEM ↓
+Original (unrefined)
+OPRO (1-iter) (Yang et al., 2023)
+PromptBreeder (8×2) (Fernando et al., 2023)
+PromptAgent (1-pass) (Wang et al., 2024b)
+ADO (format-only) (Lin et al., 2025)
+PRaaS (3B)
+PRaaS (8B)
+PRaaS (+ADO)
+PRaaS +OPRO-1iter (header) (Yang et al., 2023)
+
+Method
+
+Instr./Dialog
+
+PRaaS (no fallback)
+PRaaS + ProTeGi
+PRaaS + OPRO
+
+6. Hybrid fallback: Trigger only after two judge
+flags; single-iteration search on header (Ramnath et al., 2023; Yang et al., 2023).
+7. Drift/transfer: Semantic drift and cross-target
+reuse.
+8. Judge robustness: Two-sample judging, agreement rates, CIs (Gu et al., 2024; Zheng et al.,
+2024).
+
+Trigger ∆HHEM Extra Extra
+Rate (%) ↓ (flagged) ↓ Tokens ↑ $ ↑
+–
+–
+–
+
+–
+–
+–
+
+–
+–
+–
+
+–
+–
+–
+
+bootstrap probability that ∆HHEM<0 and effect
+sizes. Auxiliary probes include TruthfulQA,
+QAGS/Q2 , SelfCheckGPT, CoVe (Lin et al., 2022;
+Wang and Cho, 2020; Honovich et al., 2021;
+Manakul et al., 2023; Dhuliawala et al., 2023).
+
+390
+
+Cost and latency accounting. Tokens are attributed by stage (arbiter, specialists, merger, target, judge). p95 includes judge overhead. Controls
+cap iterations/candidates to match (i) total tokens
+within ±2% or (ii) end-to-end p95 within ±50 ms.
+
+395
+
+5.3
+
+400
+
+Reporting
+
+Means with 95% CIs (HHEM/utility), medians/p95
+(latency), average $ /query; judge agreement/ties;
+temperature perturbation sanity checks (decoding
+remains pinned).
+
+Aggregation and statistics. HHEM at
+claim/sentence level; 95% bootstrap CIs (10k
+resamples). For pairwise comparisons, report
+6
+
+391
+392
+393
+394
+
+396
+397
+398
+399
+
+401
+402
+403
+404
+
+Table 7: Portability: reuse x̃ on held-out black-box
+targets.
+Method
+
+Target A:
+∆HHEM ↓
+
+Target B:
+∆HHEM ↓
+
+Transfer
+Retention (%) ↑
+
+–
+–
+–
+
+–
+–
+–
+
+–
+–
+–
+
+PRaaS (3B)
+PRaaS (8B)
+PRaaS (+ADO)
+
+Table 8: Style robustness: prompt types vs. drift and
+HHEM.
+Method
+
+List Para JSON Avg.
+↓
+↓
+↓
+Drift ↓
+
+3B (no ADO)
+3B (+ADO)
+8B (no ADO)
+8B (+ADO)
+
+–
+–
+–
+–
+
+–
+–
+–
+–
+
+–
+–
+–
+–
+
+–
+–
+–
+–
+
+434
+
+Data governance. Dataset licenses are respected;
+PII filtered; judge logs store hashed IDs and verdict summaries only. Retrieval grounding is out of
+scope; see RAG surveys for context (Wang et al.,
+2024a).
+
+436
+
+7
+
+441
+
+Extended Analyses
+
+452
+
+457
+
+462
+
+412
+
+5.5
+
+413
+
+416
+
+Stateless/idempotent services; safe retries; autoscaling; anonymized logs. PRaaS can front any
+target with pinned decoding. A one-command repro script pins versions, seeds, and configs.
+
+Ablation narratives. AllOn reduces variance at
+the cost of tokens; Selective matches HHEM with
+lower $; MCTS-lite recovers misroutes by exploring two alternates and selecting via gain-per-token
+proxy.
+
+417
+
+6
+
+8
+
+418
+
+Version pinning. CUDA, PyTorch, tokenizers, inference servers, and container images are
+pinned. Model checkpoints and LoRA adapters use
+SHA256 hashes and dataset mixture IDs.
+
+414
+415
+
+419
+420
+421
+422
+423
+424
+425
+426
+427
+428
+429
+430
+431
+432
+433
+
+Reproducibility & Engineering Details
+
+Determinism. Seeds
+for
+Python/NumPy/PyTorch;
+deterministic kernels where available; n=1 sampling except
+fallback.
+Evaluation harness. Each run emits: manifest (git commit, image digests, seeds, decoding), dataset snapshot IDs, judge prompts,
+raw GPT-5 responses. A reducer computes
+HHEM/utility/p95/$/drift/agreement with 10k bootstrap resamples.
+
+Threats to Validity & Ethics
+
+7
+
+443
+444
+445
+446
+447
+
+449
+450
+451
+
+453
+454
+455
+456
+
+458
+459
+460
+461
+
+Internal: judge stochasticity (mitigated via twosample judging and CIs); possible leakage (controlled via URL+hash dedup). External: domainspecific prompts may require tighter slot schemas
+or retrieval. Construct: HHEM may disagree with
+utility; we report both. Ethical: slot defaults can
+encode bias; minimal-edit policy and drift guards
+reduce risk; fairness audits planned.
+
+463
+
+9
+
+471
+
+Limitations
+
+PRaaS cannot fix hallucinations from missing
+knowledge or deep ambiguity. Slot-filling may
+over-help; minimal-edit preference and intent
+checks mitigate this. Judge bias remains; we report
+agreement and CIs and include light human audits.
+Specialists add maintenance cost; router/fallback
+keep runtime overhead small. Retrieval grounding
+is out of scope (Wang et al., 2024a).
+
+Token/cost accounting. Tokens per stage logged;
+we report $ /query with/without judge overhead.
+
+440
+
+Specialist data scaling. PARAPHRASER is most
+sensitive to paraphrase data; D ESCRIPTION G EN ERATOR benefits from AmbigQA/ELI5 mixtures;
+C LEANER remains robust until GEC data drops
+below 50%.
+
+411
+
+Deployment considerations
+
+439
+
+448
+
+We annotate disagreements between HHEM and
+auxiliary probes into (i) edge edits, (ii) semantic
+clarifications, (iii) proactive slot filling. Minimaledit policy and drift guards bound (iii). A stratified
+sample surfaces over-normalization, under-scoping,
+and merge conflicts.
+
+410
+
+438
+
+Cross-target portability. Reusing x̃ on unseen
+black-box LLMs retains gains when edits normalize structure/constraints; target-specific prompt
+preferences can limit portability.
+
+406
+
+409
+
+437
+
+442
+
+5.4
+
+408
+
+435
+
+Why minimal edits help. Casual hallucinations
+often arise from underspecified constraints and
+brittle phrasing; minimal edits reduce ambiguity without enlarging the surface for new errors.
+Drift–quality curves show diminishing returns beyond similarity ∼0.9.
+
+405
+
+407
+
+Error analysis & qualitative insights
+
+Elasticity sweeps trace quality-per-token vs. routing budgets and agent caps.
+
+464
+465
+466
+467
+468
+469
+470
+
+472
+473
+474
+475
+476
+477
+478
+479
+
+480
+
+10
+
+481
+
+PRaaS mitigates casual hallucinations via
+pre-inference, role-bounded edits from finetuned small-LLM agents, with selective routing,
+constraint-aware merging, a formatter, and a budgeted fallback. With pinned decoding and budgetmatched SOTA baselines, we target practical quality gains at predictable latency/cost. Future work
+includes uncertainty-aware routing, richer policy
+distillation, and optional retrieval for knowledge
+gaps.
+
+482
+483
+484
+485
+486
+487
+488
+489
+490
+
+Conclusion
+
+Xiang Lisa Li and Percy Liang. 2021. Prefix-tuning:
+Optimizing continuous prompts for generation. In
+ACL.
+
+529
+530
+531
+
+Stephanie Lin, Jacob Hilton, and Owain Evans. 2022.
+Truthfulqa: Measuring how models mimic human
+falsehoods. In ACL.
+
+532
+533
+534
+
+Yichuan Lin and 1 others. 2025. Ado: Automatic data
+optimization for inputs in llm prompts. In AAAI. To
+appear; preprint available.
+
+535
+536
+537
+
+Aman Madaan and 1 others. 2023. Self-refine: Iterative
+refinement with self-feedback. In NeurIPS.
+
+538
+539
+
+Potsawee Manakul, Adian Liusie, and Mark Gales. 2023.
+Selfcheckgpt: Zero-resource black-box hallucination
+detection for generative large language models. In
+EMNLP.
+
+540
+541
+542
+543
+
+Joshua Maynez, Shashi Narayan, Bernd Bohnet, and
+Ryan McDonald. 2020. On faithfulness and factuality in abstractive summarization. In ACL.
+
+544
+545
+546
+
+Sewon Min, Julian Michael, Hannaneh Hajishirzi, and
+Luke Zettlemoyer. 2020. Ambigqa: Answering ambiguous open-domain questions. In EMNLP.
+
+547
+548
+549
+
+Courtney Napoles, Keisuke Sakaguchi, and Joel
+Tetreault. 2017. Jfleg: A fluency corpus and benchmark for grammatical error correction. In EACL
+(Short Papers).
+
+550
+551
+552
+553
+
+OpenAI. 2023.
+arXiv:2303.08774.
+
+report.
+
+554
+555
+
+Long Ouyang and 1 others. 2022. Training language
+models to follow instructions with human feedback.
+In NeurIPS.
+
+556
+557
+558
+
+Pranav Rajpurkar and 1 others. 2016. SQuAD: 100,000+
+questions for machine comprehension of text. In
+EMNLP.
+
+559
+560
+561
+
+Rishi Ramnath, Reid Pryzant, and 1 others. 2023.
+Automatic prompt optimization with “gradient descent” for large language models. In Proceedings of
+EMNLP 2023.
+
+562
+563
+564
+565
+
+491
+
+References
+
+492
+493
+494
+495
+496
+
+Christopher Bryant, Mariano Felice, and Ted Briscoe.
+2019. The bea-2019 shared task on grammatical error
+correction. In Proceedings of the 14th Workshop
+on Innovative Use of NLP for Building Educational
+Applications (BEA).
+
+497
+498
+
+Amit Chung and Vectara Team. 2024. Measuring hallucinations in llms with hhem. Vectara Blog.
+
+499
+500
+501
+
+Shehzaad Dhuliawala, Mojtaba Komeili, and 1 others.
+2023. Chain-of-verification reduces hallucination in
+large language models. arXiv:2309.11495.
+
+502
+503
+504
+
+William B. Dolan and Chris Brockett. 2005. Automatically constructing a corpus of sentential paraphrases.
+In IWP@IJCNLP.
+
+505
+506
+
+Angela Fan, Yacine Jernite, and Jason Weston. 2019.
+Eli5: Long form question answering. In ACL.
+
+507
+508
+509
+510
+511
+
+Chrisantha Fernando, Dylan Banarse, Henryk
+Michalewski,
+Simon Osindero,
+and Tim
+Rocktäschel. 2023.
+Promptbreeder:
+Selfreferential self-improvement via prompt evolution.
+arXiv:2309.16797.
+
+512
+513
+
+Leo Gao and 1 others. 2023. Rarr: Retrofit attribution
+using research and revision. In ACL.
+
+514
+515
+
+Jiayi Gu and 1 others. 2024. How reliable are LLM
+judges? a survey. arXiv:2403.03194.
+
+516
+517
+518
+
+Dan Hendrycks and 1 others. 2021. Measuring massive
+multitask language understanding. In ICLR (Track
+Datasets and Benchmarks).
+
+David Schroeder and 1 others. 2024. On the reliability
+of LLM judges. arXiv:2402.14020.
+
+566
+567
+
+519
+520
+521
+522
+
+Or Honovich and 1 others. 2021. Q2 : Evaluating factual consistency in knowledge-grounded dialogues
+via question generation and question answering. In
+EMNLP.
+
+Taylor Shin, Yasaman Razeghi, Eric Wallace, Sameer
+Singh, and Matt Gardner. 2020. Autoprompt: Eliciting knowledge from language models with automatically generated prompts. In EMNLP.
+
+568
+569
+570
+571
+
+523
+524
+525
+
+Md Rifat Arefin Islam and 1 others. 2023. Ragtruth:
+A benchmark for factuality in retrieval-augmented
+generation. In EMNLP.
+
+Noah Shinn, B. Labash, and A. Gopinath. 2024. Reflexion: Language agents with verbal reinforcement
+learning. In ICLR.
+
+572
+573
+574
+
+526
+527
+528
+
+Brian Lester, Rami Al-Rfou, and Noah Constant. 2021.
+The power of scale for parameter-efficient prompt
+tuning. In ICML.
+
+Alon Talmor and 1 others. 2020. Olmpics—on what
+language model pre-training captures. In TACL /
+EMNLP.
+
+575
+576
+577
+
+8
+
+Gpt-4
+
+technical
+
+578
+579
+580
+581
+
+James Thorne,
+Andreas Vlachos,
+Christos
+Christodoulopoulos, and Arpit Mittal. 2018.
+Fever: a large-scale dataset for fact extraction and
+verification. In NAACL.
+
+582
+583
+
+Vectara. 2024a. Hhem: Hallucination evaluation model
+(dataset/model card). Hugging Face.
+
+584
+585
+
+Vectara. 2024b. Vectara hallucination evaluation model
+(hhem) documentation.
+
+586
+587
+588
+
+Alex Wang and Kyunghyun Cho. 2020. Asking and answering questions to evaluate the factual consistency
+of summaries. In ACL.
+
+589
+590
+591
+
+Jiapeng Wang and 1 others. 2024a. A survey on
+retrieval-augmented generation (rag) for large language models. ACM Computing Surveys. In press.
+
+592
+593
+594
+
+Xuezhi Wang, Xinyun Li, and 1 others. 2024b. Promptagent: Strategic planning with language models enables expert-level prompt optimization. In ICLR.
+
+595
+596
+597
+
+Jason Wei and 1 others. 2022. Chain-of-thought prompting elicits reasoning in large language models. In
+NeurIPS.
+
+598
+599
+600
+
+Yusuke Yamauchi and 1 others. 2025. An empirical study of llm-as-a-judge reliability across tasks.
+arXiv:2501.01234.
+
+601
+602
+603
+
+Greg Yang, Yuhuai Wu, Shuxiao Chen, Zhenkai Chen,
+and Yuandong Song. 2023. Large language models
+as optimizers. arXiv:2309.03409.
+
+604
+605
+606
+
+Yinfei Yang and 1 others. 2019. Paws-x: A crosslingual adversarial dataset for paraphrase identification. In EMNLP.
+
+607
+608
+609
+
+Shunyu Yao and 1 others. 2023. Tree of thoughts: Deliberate problem solving with large language models.
+arXiv:2305.10601.
+
+610
+611
+612
+
+Chong Zhang and 1 others. 2024. Revolve: Optimizing ai systems by tracking response trajectories.
+arXiv:2404.01234.
+
+613
+614
+615
+
+Yinfei Zhang, Jason Baldridge, and Qiujia He. 2019.
+Paws: Paraphrase adversaries from word scrambling.
+In NAACL-HLT.
+
+616
+617
+
+Lianmin Zheng and 1 others. 2024. Llm-as-a-judge:
+Pitfalls and opportunities. arXiv:2406.13055.
+
+618
+619
+620
+
+Victor Zhong and 1 others. 2021. Qasper: A dataset of
+information-seeking questions for academic papers.
+In NAACL.
+
+9
+
+
