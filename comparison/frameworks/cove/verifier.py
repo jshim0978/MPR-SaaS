@@ -18,7 +18,8 @@ import os
 import time
 from typing import Dict, List
 import sys
-sys.path.append('/home/comparison/frameworks')
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from base import StandardizedMethod, RefinementResult
 
 try:
