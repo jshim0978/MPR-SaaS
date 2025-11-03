@@ -9,7 +9,6 @@ import os
 import time
 import random
 import sys
-sys.path.insert(0, '/home')
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from base import BasePromptOptimizer, RefinementResult
 from mpr.common.vllm_client import chat
