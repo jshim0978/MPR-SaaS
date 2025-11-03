@@ -6,67 +6,40 @@ Establishes baseline cost, latency, and quality metrics.
 """
 
 import time
-import tiktoken
-from typing import Dict
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'frameworks'))
+from base import StandardizedMethod, RefinementResult
 
-class ControlBaseline:
+class ControlBaseline(StandardizedMethod):
     def __init__(self):
-        self.encoder = tiktoken.get_encoding("cl100k_base")  # GPT-4/Llama tokenizer proxy
+        super().__init__(name="Control")
     
-    def count_tokens(self, text: str) -> int:
-        """Count tokens in text"""
-        return len(self.encoder.encode(text))
-    
-    def refine(self, prompt: str) -> Dict:
-        """
-        Control: No refinement, just passthrough
-        
-        Returns:
-            refined_prompt: Same as input
-            latency_ms: Negligible (just measurement overhead)
-            tokens: Original prompt tokens
-        """
+    def refine(self, prompt: str) -> RefinementResult:
+        """Control: No refinement, just passthrough"""
         t0 = time.perf_counter()
-        
-        # No actual refinement - just passthrough
         refined_prompt = prompt
-        
         latency_ms = (time.perf_counter() - t0) * 1000.0
+        tokens = len(prompt.split())
         
-        return {
-            "method": "control",
-            "original_prompt": prompt,
-            "refined_prompt": refined_prompt,
-            "refinement_latency_ms": latency_ms,
-            "prompt_tokens": self.count_tokens(prompt),
-            "refinement_tokens_added": 0,
-            "metadata": {
-                "description": "No refinement applied (control baseline)"
-            }
-        }
+        return RefinementResult(
+            method_name=self.name,
+            original_prompt=prompt,
+            refined_prompt=refined_prompt,
+            latency_ms=latency_ms,
+            tokens_used=tokens,
+            metadata={"no_refinement": True}
+        )
     
-    def __str__(self):
-        return "Control (No Refinement)"
+    def get_cost_per_token(self):
+        return {"input": 0.0, "output": 0.0}
 
 
 if __name__ == "__main__":
-    baseline = ControlBaseline()
-    
-    test_prompts = [
-        "what is the captial of frane?",
-        "tell me about quantom physics",
-        "how does photosythesis work",
-    ]
-    
-    print("="*80)
-    print("CONTROL BASELINE TEST")
-    print("="*80)
-    
-    for prompt in test_prompts:
-        print(f"\nOriginal: {prompt}")
-        result = baseline.refine(prompt)
-        print(f"Refined:  {result['refined_prompt']}")
-        print(f"Latency:  {result['refinement_latency_ms']:.3f}ms")
-        print(f"Tokens:   {result['prompt_tokens']}")
-        print(f"Added:    {result['refinement_tokens_added']}")
-
+    control = ControlBaseline()
+    test_prompt = "what is the capital of France?"
+    result = control.refine(test_prompt)
+    print(f"Original: {result.original_prompt}")
+    print(f"Refined:  {result.refined_prompt}")
+    print(f"Latency:  {result.latency_ms:.3f}ms")
+    print(f"Tokens:   {result.tokens_used}")
