@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# Results (raw results are in SBS29_results.zip)
+results/
+results_*/
+smoke_test_results/
+
+# Large temporary files
+*.tmp
+*.temp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Model files (too large for git)
+*.bin
+*.pt
+*.pth
+*.safetensors
+
+# Large repos
+official_repos/
+*_repo/
+
+# WandB
+wandb/
+
+# Compressed backups (we keep SBS29_results.zip only)
+*.tar.gz
+*.tar
+*.zip
+!SBS29_results.zip
+

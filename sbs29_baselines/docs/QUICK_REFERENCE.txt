@@ -1,0 +1,99 @@
+# Quick Reference: Data Collection for jw1
+**Copy-paste this to jw1 for immediate reference**
+
+---
+
+## 📋 Required JSON Structure
+
+```json
+{
+  "sample_idx": 0,
+  "dataset": "truthfulqa",
+  "framework": "praas",
+  "original_prompt": "<question from dataset>",
+  "refined_prompt": "<your framework's optimized version>",
+  "control_output": "<LLM answer to original_prompt>",
+  "refined_output": "<LLM answer to refined_prompt>",
+  "refinement_latency_ms": 4500.5,
+  "refinement_tokens": {"input": 76, "output": 178, "total": 254},
+  "control_generation_latency_ms": 1200.3,
+  "control_generation_tokens": {"input": 10, "output": 150, "total": 160},
+  "refined_generation_latency_ms": 1300.7,
+  "refined_generation_tokens": {"input": 15, "output": 155, "total": 170},
+  "total_latency_ms": 6001.5,
+  "total_tokens": 584
+}
+```
+
+---
+
+## ⚙️ LLM Configuration (MUST MATCH)
+
+```python
+TARGET_LLM_CONFIG = {
+    "model": "meta-llama/Llama-3.2-3B-Instruct",
+    "temperature": 0.2,
+    "top_p": 0.9,
+    "max_new_tokens": 512,
+    "do_sample": True,
+    "seed": 13,
+}
+```
+
+---
+
+## 🔄 Evaluation Steps
+
+1. **Load original prompt** from dataset
+2. **Refine prompt** using your framework → `refined_prompt`
+3. **Generate control output:** `original_prompt` → LLM → `control_output`
+4. **Generate refined output:** `refined_prompt` → LLM → `refined_output`
+5. **Save all 4** (original, refined, control output, refined output) + metrics
+
+---
+
+## 📁 File Naming
+
+```
+praas_truthfulqa_COMPLETE.json
+praas_gsm8k_COMPLETE.json
+praas_ambigqa_COMPLETE.json
+praas_halueval_COMPLETE.json
+```
+
+---
+
+## ✅ Critical Fields (DON'T FORGET)
+
+- `original_prompt` ✓
+- `refined_prompt` ✓
+- `control_output` ✓ **← Most commonly forgotten!**
+- `refined_output` ✓
+- All latencies and tokens ✓
+
+---
+
+## 🎯 Why We Need Both Outputs
+
+GPT-5 will judge:
+```
+"Which is better: Control output or Refined output?"
+```
+
+Without both outputs, we can't compare!
+
+---
+
+## 📊 Example Files
+
+See smoke test results:
+```
+/home/comparison/smoke_test_results/COMPREHENSIVE_smoke_test.json
+```
+
+60 real examples showing exact format.
+
+---
+
+**Full spec:** `/home/comparison/DATA_COLLECTION_SPEC_FOR_JW1.md`
+
