@@ -1,0 +1,67 @@
+name: praas_describer_guard_v1
+description: >
+  Capacity-aware baseline promoted from the 2025-11-14 mixed-benchmark sweep.
+  Uses conservative merge + stricter skip/completeness thresholds to gate Describer.
+
+orchestrator:
+  url: http://129.254.202.251:8000/infer
+  payload:
+    merge_strategy: conservative
+    use_ado_formatter: true
+
+specialists:
+  cleaner_url: http://129.254.202.252:8002/clean
+  describer_url: http://129.254.202.253:8003/describe
+  paraphraser_url: http://129.254.202.129:8004/paraphrase
+
+router:
+  typo_threshold: 0.35
+  completeness_threshold: 0.4
+  fluency_threshold: 0.85
+  skip_threshold: 0.45
+
+merger:
+  max_drift: 0.4
+  similarity_threshold: 0.7
+
+target_model:
+  name: meta-llama/Llama-3.2-3B-Instruct
+  decoding:
+    temperature: 0.2
+    top_p: 0.95
+    max_tokens: 256
+    seed: 2025
+    stop: []
+  endpoints:
+    - name: jw2
+      url: http://129.254.202.252:8001/v1/chat/completions
+    - name: jw3
+      url: http://129.254.202.253:8001/v1/chat/completions
+    - name: kcloud
+      url: http://129.254.202.129:8004/generate
+
+evaluation:
+  benchmarks:
+    - bbh
+    - truthfulqa
+    - gsm8k
+    - commonsenseqa
+    - strategyqa
+    - halueval
+  batch_size: 10
+  max_samples: -1
+  sample_overrides: {}
+  wandb:
+    enabled: true
+    project: praas_tuning
+    entity: prml-nlp
+    run_name_prefix: praas_baseline
+  output_root: eval/results
+  data_root: eval/data
+
+metadata:
+  best_run_summary: eval/results/20251114_161708/aggregate_summary.json
+  notes:
+    - Promoted from W&B run prml-nlp/praas_tuning/ptfu4yni (praas_describer_guard_20251114_161708)
+    - Conservative merge + higher skip threshold keep Describer optional
+
